@@ -1,11 +1,14 @@
-import { Container } from "native-base";
+import { Stack } from "tamagui";
 import React from "react";
 import { Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   return (
-    <Container safeArea>
-      <Text>Hello World</Text>
-    </Container>
+    <SafeAreaView>
+      <Stack>
+        <Text>Hello World</Text>
+      </Stack>
+    </SafeAreaView>
   );
 }
