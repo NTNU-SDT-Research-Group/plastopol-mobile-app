@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, YStack } from "tamagui";
+import { Stack, Text, YStack } from "tamagui";
 import ImageRoll from "../components/ImageRoll/ImageRoll";
 import * as MediaLibrary from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
+import { StyleSheet, View } from "react-native";
 
 export default function ImageList() {
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
@@ -16,7 +17,9 @@ export default function ImageList() {
     if (permissionResponse?.status !== MediaLibrary.PermissionStatus.GRANTED) {
       requestPermission();
     } else {
-      const foundAlbum =MediaLibrary.getAlbumAsync(IMAGE_STORAGE_LOCATION).then((foundAlbum) => {
+      const foundAlbum = MediaLibrary.getAlbumAsync(
+        IMAGE_STORAGE_LOCATION
+      ).then((foundAlbum) => {
         if (foundAlbum) {
           console.log("Found album");
           setAlbum(foundAlbum);
@@ -86,19 +89,29 @@ export default function ImageList() {
   };
 
   return (
-    <SafeAreaView>
-      <YStack>
-        <YStack>
+    <SafeAreaView style={styles.container}>
+      <Stack flex={1}>
+        <YStack
+          height={"40%"}
+          elevation={4}
+        >
           <Text>Image Preview</Text>
         </YStack>
-        <YStack>
+        <YStack flex={1} elevation={1}>
           <ImageRoll
             isNotCreated={album === null}
             onCreate={onRequestAlbumCreation}
             onAdd={onRequestAddImages}
           />
         </YStack>
-      </YStack>
+      </Stack>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+});
