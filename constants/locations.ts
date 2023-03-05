@@ -1,1 +1,1 @@
-export const IMAGE_STORAGE_LOCATION = 'plastopol';
+export const IMAGE_STORAGE_LOCATION = 'PlastOPol';

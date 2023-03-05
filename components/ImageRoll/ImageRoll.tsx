@@ -1,21 +1,22 @@
 import React from "react";
-import { Button, Text, XStack, YStack, useTheme } from "tamagui";
+import { Button, XStack, YStack, useTheme, ScrollView } from "tamagui";
 import { StyleSheet } from "react-native";
 import NoImage from "./components/NoImage";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { ImageWithAnnotation } from "../../@types/global";
+import Gallery from "./components/Gallery";
 
 type ImageRollProps = {
-  isNotCreated: boolean;
-  onCreate?: () => void;
   onAdd?: () => void;
+  imageList: ImageWithAnnotation[];
 };
 
 export default function ImageRoll({
-  isNotCreated,
-  onCreate,
   onAdd,
+  imageList
 }: ImageRollProps) {
   const theme = useTheme();
+  const isEmpty = imageList.length === 0;
 
   return (
     <YStack
@@ -24,7 +25,7 @@ export default function ImageRoll({
       borderTopLeftRadius={12}
       borderTopRightRadius={12}
     >
-      <YStack flex={1}>{isNotCreated ? <NoImage /> : null}</YStack>
+      <YStack flex={1}>{isEmpty ? <NoImage /> : <Gallery imageList={imageList} />}</YStack>
       <XStack p="$2" space="$2" bg="$blue1">
         <XStack flex={1}>
           <Button
@@ -37,7 +38,7 @@ export default function ImageRoll({
               />
             }
             width={"100%"}
-            onPress={isNotCreated ? onCreate : onAdd}
+            onPress={onAdd}
           >
             Capture
           </Button>
@@ -54,7 +55,7 @@ export default function ImageRoll({
               />
             }
             width={"100%"}
-            onPress={isNotCreated ? onCreate : onAdd}
+            onPress={onAdd}
           >
             Import
           </Button>
