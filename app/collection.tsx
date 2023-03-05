@@ -1,19 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, YStack } from "tamagui";
+import { Button, Stack, XStack, YStack, useTheme } from "tamagui";
 import ImageRoll from "../components/ImageRoll/ImageRoll";
 import * as MediaLibrary from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
 import { StyleSheet } from "react-native";
 import { ImageWithAnnotation } from "../@types/global";
+import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { useRouter } from "expo-router";
 
 export default function ImageList() {
+  const theme = useTheme();
+  const router = useRouter();
+
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
-  const [album, setAlbum] = React.useState<
-    MediaLibrary.Album | null | undefined
-  >(undefined);
-  const [imageList, setImageList] = React.useState<ImageWithAnnotation[]>([]);
+  const [album, setAlbum] = useState<MediaLibrary.Album | null | undefined>(
+    undefined
+  );
+  const [imageList, setImageList] = useState<ImageWithAnnotation[]>([]);
 
   useEffect(() => {
     if (permissionResponse?.status !== MediaLibrary.PermissionStatus.GRANTED) {
@@ -31,29 +36,37 @@ export default function ImageList() {
     }
   }, [permissionResponse]);
 
+  // * Update image list on initial load and when album changes.
   useEffect(() => {
     if (album) {
-      MediaLibrary.getAssetsAsync({
-        album: album,
-      }).then((foundAssets) => {
-        // TODO: Query DB
-        setImageList(
-          foundAssets.assets.map((asset) => ({
-            width: asset.width,
-            height: asset.height,
-            id: asset.id,
-            annotations: null,
-            path: asset.uri,
-            modificationTime: asset.modificationTime,
-          }))
-        );
-      });
+      updateImageList(album);
     }
   }, [album]);
 
   if (album === undefined) {
     return null;
   }
+
+  const updateImageList = async (album: MediaLibrary.Album) => {
+    try {
+      const foundAssets = await MediaLibrary.getAssetsAsync({
+        album: album,
+      });
+
+      setImageList(
+        foundAssets.assets.map((asset) => ({
+          width: asset.width,
+          height: asset.height,
+          id: asset.id,
+          annotations: null,
+          path: asset.uri,
+          modificationTime: asset.modificationTime,
+        }))
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -63,7 +76,6 @@ export default function ImageList() {
     });
 
     if (result.canceled || result.assets.length === 0) {
-      alert("You did not select any image.");
       return;
     }
 
@@ -76,51 +88,101 @@ export default function ImageList() {
   const createAlbum = async () => {
     const result = await pickImage();
 
-    if (album === null && result) {
-      try {
-        const [first, ...rest] = result;
+    if (!result) {
+      throw Error("No image selected.");
+    }
 
-        const createdAlbum = await MediaLibrary.createAlbumAsync(
-          IMAGE_STORAGE_LOCATION,
-          first,
-          false
-        );
+    try {
+      const [first, ...rest] = result;
 
-        if (rest.length !== 0) {
-          await MediaLibrary.addAssetsToAlbumAsync(
-            rest,
-            createdAlbum!.id,
-            false
-          );
-        }
+      const createdAlbum = await MediaLibrary.createAlbumAsync(
+        IMAGE_STORAGE_LOCATION,
+        first,
+        false
+      );
 
-        setAlbum(createdAlbum);
-      } catch (error) {
-        console.error(error);
+      if (rest.length !== 0) {
+        await MediaLibrary.addAssetsToAlbumAsync(rest, createdAlbum!.id, false);
+      }
+
+      setAlbum(createdAlbum);
+
+      return createdAlbum;
+    } catch (error) {
+      console.error(error);
+    }
+
+    throw Error("Could not create album.");
+  };
+
+  const onRequestAddImages = async () => {
+    /**
+     * * If album is null, create a new album and add images to it.
+     * * (Needed for special case of android)
+     */
+    if (!album) {
+      const createdAlbum = await createAlbum();
+      await updateImageList(createdAlbum);
+    } else {
+      const result = await pickImage();
+
+      if (result) {
+        await MediaLibrary.addAssetsToAlbumAsync(result, album.id, false);
+        await updateImageList(album);
       }
     }
   };
 
-  const onRequestAddImages = async () => {
-    if(!album) createAlbum();
+  const onRequestRemoveImage = async (id: string) => {
+    // TODO: Implement
+  };
 
-    const result = await pickImage();
-
-    if (result) {
-      await MediaLibrary.addAssetsToAlbumAsync(result, album!.id, false);
-    }
+  const onRequestAnnotateImage = async (asset: ImageWithAnnotation) => {
+    // TODO: Extend to annotate multiple
+    router.push({
+      pathname: "/annotate",
+      params: {
+        assetId: asset.id,
+      },
+    });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack flex={1}>
-        <YStack flex={1} elevation={1}>
-          <ImageRoll
-            imageList={imageList}
-            onAdd={onRequestAddImages}
-          />
+      <YStack flex={1}>
+        <YStack bg="$blue1" flex={1}>
+          <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
         </YStack>
-      </Stack>
+        <XStack p="$2" space="$2" bg="$blue2">
+          <Button
+            flex={1}
+            icon={
+              <MaterialIcon
+                name="monochrome-photos"
+                size={20}
+                color={theme.purple11.val}
+              />
+            }
+            onPress={onRequestAddImages}
+          >
+            Capture
+          </Button>
+          <Button
+            flex={1}
+            alignItems="center"
+            icon={
+              <MaterialIcon
+                name="photo-library"
+                size={20}
+                color={theme.purple11.val}
+              />
+            }
+            onPress={onRequestAddImages}
+          >
+            Import
+          </Button>
+        </XStack>
+      </YStack>
     </SafeAreaView>
   );
 }

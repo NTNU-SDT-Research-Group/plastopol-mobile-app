@@ -1,66 +1,57 @@
 import React from "react";
-import { Button, XStack, YStack, useTheme, ScrollView } from "tamagui";
-import { StyleSheet } from "react-native";
+import { Image, useWindowDimensions, Stack, YStack } from "tamagui";
 import NoImage from "./components/NoImage";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import { ImageWithAnnotation } from "../../@types/global";
-import Gallery from "./components/Gallery";
+import { FlatList, StyleSheet } from "react-native";
 
 type ImageRollProps = {
-  onAdd?: () => void;
   imageList: ImageWithAnnotation[];
+  onPress: (asset: ImageWithAnnotation) => void;
 };
 
-export default function ImageRoll({
-  onAdd,
-  imageList
-}: ImageRollProps) {
-  const theme = useTheme();
+export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
   const isEmpty = imageList.length === 0;
 
+  const { width } = useWindowDimensions();
+
+  const renderItem = ({ item }: { item: ImageWithAnnotation }) => (
+    <Stack width={width / 3} aspectRatio={1}>
+      <Image
+        onPress={() => onPress(item)}
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+        key={item.id}
+        src={item.path}
+        height={100}
+        width={100}
+      />
+    </Stack>
+  );
+
   return (
-    <YStack
-      flex={1}
-      bg="$blue1"
-      borderTopLeftRadius={12}
-      borderTopRightRadius={12}
-    >
-      <YStack flex={1}>{isEmpty ? <NoImage /> : <Gallery imageList={imageList} />}</YStack>
-      <XStack p="$2" space="$2" bg="$blue1">
-        <XStack flex={1}>
-          <Button
-            theme="purple"
-            icon={
-              <MaterialIcon
-                name="monochrome-photos"
-                size={20}
-                color={theme.purple11.val}
-              />
-            }
-            width={"100%"}
-            onPress={onAdd}
-          >
-            Capture
-          </Button>
-        </XStack>
-        <XStack flex={1}>
-          <Button
-            theme="purple"
-            als="center"
-            icon={
-              <MaterialIcon
-                name="photo-library"
-                size={20}
-                color={theme.purple11.val}
-              />
-            }
-            width={"100%"}
-            onPress={onAdd}
-          >
-            Import
-          </Button>
-        </XStack>
-      </XStack>
+    <YStack flex={1}>
+      {isEmpty ? (
+        <NoImage />
+      ) : (
+        <FlatList
+          keyExtractor={(item) => item.id}
+          data={imageList}
+          renderItem={renderItem}
+          numColumns={3}
+        />
+      )}
     </YStack>
   );
 }
+
+const styles = StyleSheet.create({
+  grid: {
+    flexDirection: "row",
+    width: "100%",
+    flexWrap: "wrap",
+    gap: 4,
+    justifyContent: "flex-start",
+  },
+});
