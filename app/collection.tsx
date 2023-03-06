@@ -9,16 +9,19 @@ import { StyleSheet } from "react-native";
 import { ImageWithAnnotation } from "../@types/global";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
+import { useStore } from "../state";
 
 export default function ImageList() {
   const theme = useTheme();
   const router = useRouter();
 
+  const imageList = useStore((state) => state.imageList);
+  const setImageList = useStore((state) => state.setImageList);
+
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
   const [album, setAlbum] = useState<MediaLibrary.Album | null | undefined>(
     undefined
   );
-  const [imageList, setImageList] = useState<ImageWithAnnotation[]>([]);
 
   useEffect(() => {
     if (permissionResponse?.status !== MediaLibrary.PermissionStatus.GRANTED) {
@@ -142,7 +145,8 @@ export default function ImageList() {
     router.push({
       pathname: "/annotate",
       params: {
-        assetId: asset.id,
+        selectedAssetIDList: [asset.id, asset.id, asset.id],
+        isPreview: true,
       },
     });
   };
