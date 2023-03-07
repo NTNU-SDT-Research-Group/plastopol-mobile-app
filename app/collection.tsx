@@ -152,7 +152,6 @@ export default function ImageList() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
       <YStack flex={1}>
         <YStack bg="$blue1" flex={1}>
           <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
@@ -187,7 +186,6 @@ export default function ImageList() {
           </Button>
         </XStack>
       </YStack>
-    </SafeAreaView>
   );
 }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, H4, CardProps, YStack } from "tamagui";
+import { Card, CardProps, YStack, Stack, Text, XStack } from "tamagui";
 
 type PressableCardProps = CardProps & {
   title: string;
@@ -12,11 +12,13 @@ export default function PressableCard({
   ...rest
 }: PressableCardProps) {
   return (
-    <Card {...rest} py="$2" pb="$3" space="$2" theme="dark" elevate bordered>
-      <Card.Header alignItems="center">
-        <H4>{title}</H4>
-      </Card.Header>
-      <YStack alignItems="center">{icon}</YStack>
+    <Card {...rest} bg="$green4">
+      <XStack flex={1} p={8} alignItems="center" space="$4">
+        <Stack flex={1} justifyContent="center" alignItems="center">{icon}</Stack>
+        <Stack flex={1} justifyContent="center" alignItems="flex-start">
+          <Text fontSize={28}>{title}</Text>
+        </Stack>
+      </XStack>
     </Card>
   );
 }
