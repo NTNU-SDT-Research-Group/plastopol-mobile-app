@@ -18,7 +18,7 @@ export default function EventCard() {
   return (
     <Card
       flex={1}
-      bg="$green12"
+      bg="white"
       style={{
         shadowColor: theme.gray12.val,
         shadowRadius: 30,
@@ -26,7 +26,7 @@ export default function EventCard() {
       }}
     >
       <YStack flex={1} p={8}>
-        <XStack justifyContent="center" bg="$green4" borderRadius={6}>
+        <XStack justifyContent="center" bg="$green5" borderRadius={6}>
           <Text fontSize={32} my="$4" fontWeight="700" color="$green12">
             PlastOPol
           </Text>
@@ -37,8 +37,8 @@ export default function EventCard() {
           </Stack>
         </YStack>
         <XStack justifyContent="flex-end" alignItems="stretch" space="$2">
-          <XStack flex={1} borderWidth={0.5} borderColor="$green5" bg="$green2" borderStyle="solid" alignItems="center" px="$2" borderRadius={6} space="$2">
-            <Circle space="$2" alignItems="center" bg="$green5" p="$2">
+          <XStack flex={1} borderWidth={0.5} borderColor="$green5" bg="$green4" borderStyle="solid" alignItems="center" px="$2" borderRadius={6} space="$2">
+            <Circle space="$2" alignItems="center" bg="$green6" p="$2">
               <MaterialIcon name="event" size={16} color={theme.green11.val} />
             </Circle>
             <XStack alignItems="center" justifyContent="center" flex={1} space="$2">
