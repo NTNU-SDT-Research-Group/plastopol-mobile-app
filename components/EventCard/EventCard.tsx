@@ -10,7 +10,6 @@ import {
   useTheme,
 } from "tamagui";
 import CoverImage from "../../assets/images/volunteer.svg";
-import { LinearGradient } from "tamagui/linear-gradient";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 
 export default function EventCard() {
@@ -19,7 +18,7 @@ export default function EventCard() {
   return (
     <Card
       flex={1}
-      bg="white"
+      bg="$green12"
       style={{
         shadowColor: theme.gray12.val,
         shadowRadius: 30,

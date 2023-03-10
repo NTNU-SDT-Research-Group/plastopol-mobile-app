@@ -2,7 +2,7 @@ import React from "react";
 import { Image, useWindowDimensions, Stack, YStack, useTheme } from "tamagui";
 import NoImage from "./components/NoImage";
 import { ImageWithAnnotation } from "../../@types/global";
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList } from "react-native";
 
 type ImageRollProps = {
   imageList: ImageWithAnnotation[];
@@ -67,13 +67,3 @@ export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
     </YStack>
   );
 }
-
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: "row",
-    width: "100%",
-    flexWrap: "wrap",
-    gap: 4,
-    justifyContent: "flex-start",
-  },
-});

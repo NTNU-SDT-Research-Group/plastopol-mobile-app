@@ -171,12 +171,12 @@ export default function ImageList() {
             <MaterialIcon
               name="monochrome-photos"
               size={20}
-              color={theme.purple11.val}
+              color={theme.green10.val}
             />
           }
           onPress={onRequestAddImages}
         >
-          Capture
+          Camera
         </Button>
         <Button
           flex={1}
@@ -185,7 +185,7 @@ export default function ImageList() {
             <MaterialIcon
               name="photo-library"
               size={20}
-              color={theme.purple11.val}
+              color={theme.green10.val}
             />
           }
           onPress={onRequestAddImages}
@@ -196,10 +196,3 @@ export default function ImageList() {
     </YStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-});
