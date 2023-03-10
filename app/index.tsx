@@ -1,4 +1,4 @@
-import { YStack } from "tamagui";
+import { XStack, YStack } from "tamagui";
 import React from "react";
 import PressableCard from "../components/PressableCard";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
@@ -11,12 +11,28 @@ export default function HomeScreen() {
   const router = useRouter();
 
   return (
-    <YStack space="$2" p={"$2"} flex={1} bg="$green1">
+    <YStack space="$2" p={"$2"} bg="$gray2" flex={1}>
       <YStack flex={1}>
         <EventCard />
       </YStack>
-      <YStack h="40%" maxHeight={400} justifyContent="center" space="$2">
+      <XStack h="30%" maxHeight={400} justifyContent="center" space="$2">
         <PressableCard
+          bg="$purple12"
+          flex={1}
+          title="Collection"
+          icon={
+            <Image
+              style={{
+                width: 65,
+                height: 65,
+              }}
+              source={require("../assets/images/gallery-icon.png")}
+            />
+          }
+          onPress={() => router.push("collection")}
+        />
+        <PressableCard
+          bg="$blue12"
           flex={1}
           title="Capture"
           icon={
@@ -30,19 +46,7 @@ export default function HomeScreen() {
           }
           onPress={() => router.push("capture")}
         />
-        <PressableCard
-          flex={1}
-          title="Collection"
-          icon={<Image
-            style={{
-              width: 90,
-              height: 90,
-            }}
-            source={require("../assets/images/gallery-icon.png")}
-          />}
-          onPress={() => router.push("collection")}
-        />
-      </YStack>
+      </XStack>
     </YStack>
   );
 }

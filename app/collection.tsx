@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Stack, XStack, YStack, useTheme } from "tamagui";
+import { Button, XStack, YStack, useTheme } from "tamagui";
 import ImageRoll from "../components/ImageRoll/ImageRoll";
 import * as MediaLibrary from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
@@ -152,40 +151,49 @@ export default function ImageList() {
   };
 
   return (
+    <YStack flex={1} bg="$gray2">
       <YStack flex={1}>
-        <YStack bg="$blue1" flex={1}>
-          <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
-        </YStack>
-        <XStack p="$2" space="$2" bg="$blue2">
-          <Button
-            flex={1}
-            icon={
-              <MaterialIcon
-                name="monochrome-photos"
-                size={20}
-                color={theme.purple11.val}
-              />
-            }
-            onPress={onRequestAddImages}
-          >
-            Capture
-          </Button>
-          <Button
-            flex={1}
-            alignItems="center"
-            icon={
-              <MaterialIcon
-                name="photo-library"
-                size={20}
-                color={theme.purple11.val}
-              />
-            }
-            onPress={onRequestAddImages}
-          >
-            Import
-          </Button>
-        </XStack>
+        <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
       </YStack>
+      <XStack
+        style={{
+          shadowColor: theme.gray12.val,
+          shadowRadius: 30,
+          elevation: 4,
+        }}
+        p="$2"
+        space="$2"
+        bg="white"
+      >
+        <Button
+          flex={1}
+          icon={
+            <MaterialIcon
+              name="monochrome-photos"
+              size={20}
+              color={theme.purple11.val}
+            />
+          }
+          onPress={onRequestAddImages}
+        >
+          Capture
+        </Button>
+        <Button
+          flex={1}
+          alignItems="center"
+          icon={
+            <MaterialIcon
+              name="photo-library"
+              size={20}
+              color={theme.purple11.val}
+            />
+          }
+          onPress={onRequestAddImages}
+        >
+          Import
+        </Button>
+      </XStack>
+    </YStack>
   );
 }
 

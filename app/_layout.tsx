@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
+import StatusBar from "../components/StatusBar";
 import { Stack as StackRouter, ErrorBoundary, SplashScreen } from "expo-router";
-import { useColorScheme } from "react-native";
-import { TamaguiProvider, Text, Theme } from "tamagui";
+import { TamaguiProvider, Theme } from "tamagui";
 import { useFonts } from "expo-font";
 import config from "../tamagui.config";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,8 +9,6 @@ import { StyleSheet } from "react-native";
 import Header from "../components/Header";
 
 export default function HomeLayout() {
-  const colorScheme = useColorScheme();
-
   const [loaded, error] = useFonts({
     Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
     InterBold: require("@tamagui/font-inter/otf/Inter-Bold.otf"),
@@ -28,15 +25,16 @@ export default function HomeLayout() {
   return (
     <TamaguiProvider config={config}>
       <Theme name="light">
-        <Theme name="green">
-          <SafeAreaView style={styles.container}>
-            <Header />
-            <StackRouter screenOptions={{ headerShown: false }}>
-              <StackRouter.Screen name="index" />
-            </StackRouter>
-            <StatusBar style="auto" />
-          </SafeAreaView>
-        </Theme>
+        <SafeAreaView style={styles.container}>
+          <StackRouter
+            initialRouteName="index"
+            screenOptions={{
+              headerShown: true,
+              header: (props) => <Header {...props} />,
+            }}
+          />
+          <StatusBar />
+        </SafeAreaView>
       </Theme>
     </TamaguiProvider>
   );
