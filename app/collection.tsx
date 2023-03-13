@@ -4,7 +4,6 @@ import ImageRoll from "../components/ImageRoll/ImageRoll";
 import * as MediaLibrary from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
-import { StyleSheet } from "react-native";
 import { ImageWithAnnotation } from "../@types/global";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
@@ -17,18 +16,16 @@ export default function ImageList() {
   const imageList = useStore((state) => state.imageList);
   const setImageList = useStore((state) => state.setImageList);
 
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+  const [permission, requestPermission] = MediaLibrary.usePermissions();
   const [album, setAlbum] = useState<MediaLibrary.Album | null | undefined>(
     undefined
   );
 
   useEffect(() => {
-    if (permissionResponse?.status !== MediaLibrary.PermissionStatus.GRANTED) {
+    if (permission?.status !== MediaLibrary.PermissionStatus.GRANTED) {
       requestPermission();
     } else {
-      const foundAlbum = MediaLibrary.getAlbumAsync(
-        IMAGE_STORAGE_LOCATION
-      ).then((foundAlbum) => {
+      MediaLibrary.getAlbumAsync(IMAGE_STORAGE_LOCATION).then((foundAlbum) => {
         if (foundAlbum) {
           setAlbum(foundAlbum);
         } else {
@@ -36,7 +33,7 @@ export default function ImageList() {
         }
       });
     }
-  }, [permissionResponse]);
+  }, [permission]);
 
   // * Update image list on initial load and when album changes.
   useEffect(() => {
@@ -45,6 +42,13 @@ export default function ImageList() {
     }
   }, [album]);
 
+  // * If we don't have permissions, we show nothing.
+  if (!permission?.granted) {
+    return null;
+  }
+
+  // * Since async, we show nothing until we know if the album exists.
+  // * null means we have permissions but no album, undefined means we're still loading.
   if (album === undefined) {
     return null;
   }
@@ -87,15 +91,9 @@ export default function ImageList() {
     return assets;
   };
 
-  const createAlbum = async () => {
-    const result = await pickImage();
-
-    if (!result) {
-      throw Error("No image selected.");
-    }
-
+  const createAlbum = async (images: MediaLibrary.Asset[]) => {
     try {
-      const [first, ...rest] = result;
+      const [first, ...rest] = images;
 
       const createdAlbum = await MediaLibrary.createAlbumAsync(
         IMAGE_STORAGE_LOCATION,
@@ -122,12 +120,14 @@ export default function ImageList() {
      * * If album is null, create a new album and add images to it.
      * * (Needed for special case of android)
      */
-    if (!album) {
-      const createdAlbum = await createAlbum();
-      await updateImageList(createdAlbum);
-    } else {
-      const result = await pickImage();
+    const result = await pickImage();
 
+    if (!album) {
+      if (result) {
+        const createdAlbum = await createAlbum(result);
+        await updateImageList(createdAlbum);
+      }
+    } else {
       if (result) {
         await MediaLibrary.addAssetsToAlbumAsync(result, album.id, false);
         await updateImageList(album);
