@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { ImageWithAnnotation } from "../@types/global";
+import { Image } from "../@types/global";
 
 interface GlobalState {
-  imageList: ImageWithAnnotation[];
-  setImageList: (imageList: ImageWithAnnotation[]) => void;
+  imageList: Image[];
+  setImageList: (imageList: Image[]) => void;
 }
 
 export const useStore = create<GlobalState>((set) => ({

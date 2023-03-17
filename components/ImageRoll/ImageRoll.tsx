@@ -1,12 +1,12 @@
 import React from "react";
 import { Image, useWindowDimensions, Stack, YStack, useTheme } from "tamagui";
 import NoImage from "./components/NoImage";
-import { ImageWithAnnotation } from "../../@types/global";
+import { Image as ImageType } from "../../@types/global";
 import { FlatList } from "react-native";
 
 type ImageRollProps = {
-  imageList: ImageWithAnnotation[];
-  onPress: (asset: ImageWithAnnotation) => void;
+  imageList: ImageType[];
+  onPress: (asset: ImageType) => void;
 };
 
 export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
@@ -16,7 +16,7 @@ export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
 
   const { width } = useWindowDimensions();
 
-  const renderItem = ({ item }: { item: ImageWithAnnotation }) => (
+  const renderItem = ({ item }: { item: ImageType }) => (
     <Stack
       width={width / 3}
       aspectRatio={1}

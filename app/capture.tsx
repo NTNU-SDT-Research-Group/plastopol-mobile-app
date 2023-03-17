@@ -1,45 +1,34 @@
 import React, { useEffect, useRef } from "react";
 import { Stack, YStack } from "tamagui";
-import * as MediaLibrary from "expo-media-library";
+import { Asset } from "expo-media-library";
 import { Camera, CameraCapturedPicture, CameraType } from "expo-camera";
 import { useState } from "react";
 import CameraController from "../components/CameraController";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import { Image, StyleSheet } from "react-native";
+import { covertUriToAsset, useAlbum } from "../utils/media-lib";
 
 export default function Capture() {
   const cameraRef = useRef<Camera>(null);
 
   const [cameraPermission, requestCameraPermission] =
     Camera.useCameraPermissions();
-  const [albumPermission, requestAlbumPermission] =
-    MediaLibrary.usePermissions();
+  const {
+    album,
+    addImagesToAlbum,
+    permission: albumPermission,
+  } = useAlbum({
+    imageStorageLocation: IMAGE_STORAGE_LOCATION,
+  });
 
   const [currentImage, setCurrentImage] =
     useState<CameraCapturedPicture | null>(null);
-  const [album, setAlbum] = useState<MediaLibrary.Album | null | undefined>(
-    undefined
-  );
 
   useEffect(() => {
     if (!cameraPermission?.granted) {
       requestCameraPermission();
     }
   }, [cameraPermission]);
-
-  useEffect(() => {
-    if (albumPermission?.status !== MediaLibrary.PermissionStatus.GRANTED) {
-      requestAlbumPermission();
-    } else {
-      MediaLibrary.getAlbumAsync(IMAGE_STORAGE_LOCATION).then((foundAlbum) => {
-        if (foundAlbum) {
-          setAlbum(foundAlbum);
-        } else {
-          setAlbum(null);
-        }
-      });
-    }
-  }, [albumPermission]);
 
   if (!cameraPermission?.granted || !albumPermission?.granted) {
     return null;
@@ -49,41 +38,12 @@ export default function Capture() {
     return null;
   }
 
-  const createAlbum = async (images: MediaLibrary.Asset[]) => {
-    try {
-      const [first, ...rest] = images;
-
-      const createdAlbum = await MediaLibrary.createAlbumAsync(
-        IMAGE_STORAGE_LOCATION,
-        first,
-        false
-      );
-
-      if (rest.length !== 0) {
-        await MediaLibrary.addAssetsToAlbumAsync(rest, createdAlbum!.id, false);
-      }
-
-      setAlbum(createdAlbum);
-
-      return createdAlbum;
-    } catch (error) {
-      console.error(error);
-    }
-
-    throw Error("Could not create album.");
-  };
-
   const savePicture = async () => {
     const picture = currentImage;
     if (picture) {
-      const asset = await MediaLibrary.createAssetAsync(picture.uri);
+      const ImageAsset = await covertUriToAsset([picture.uri]);
 
-      if (!album) {
-        const createdAlbum = await createAlbum([asset]);
-        setAlbum(createdAlbum);
-      } else {
-        await MediaLibrary.addAssetsToAlbumAsync([asset], album.id, false);
-      }
+      await addImagesToAlbum(ImageAsset);
     }
   };
 
