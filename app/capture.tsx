@@ -1,12 +1,17 @@
 import React, { useEffect, useRef } from "react";
 import { Stack, YStack } from "tamagui";
-import { Asset } from "expo-media-library";
-import { Camera, CameraCapturedPicture, CameraType } from "expo-camera";
+import {
+  Camera,
+  CameraCapturedPicture,
+  CameraType,
+  FlashMode,
+} from "expo-camera";
 import { useState } from "react";
 import CameraController from "../components/CameraController";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import { Image, StyleSheet } from "react-native";
 import { covertUriToAsset, useAlbum } from "../utils/media-lib";
+import Toast from "react-native-toast-message";
 
 export default function Capture() {
   const cameraRef = useRef<Camera>(null);
@@ -20,6 +25,8 @@ export default function Capture() {
   } = useAlbum({
     imageStorageLocation: IMAGE_STORAGE_LOCATION,
   });
+  const [cameraType, setCameraType] = useState<CameraType>(CameraType.back);
+  const [flashMode, setFlashMode] = useState<FlashMode>(FlashMode.off);
 
   const [currentImage, setCurrentImage] =
     useState<CameraCapturedPicture | null>(null);
@@ -38,12 +45,46 @@ export default function Capture() {
     return null;
   }
 
+  const showImageSaveSuccessToast = () => {
+    Toast.show({
+      type: "success",
+      text1: "Image saved to album",
+    });
+  };
+
+  const toggleCameraType = () => {
+    setCameraType(
+      cameraType === CameraType.back ? CameraType.front : CameraType.back
+    );
+  };
+
+  const toggleFlashMode = () => {
+    switch (flashMode) {
+      case FlashMode.off:
+        setFlashMode(FlashMode.on);
+        break;
+      case FlashMode.on:
+        setFlashMode(FlashMode.auto);
+        break;
+      case FlashMode.auto:
+        setFlashMode(FlashMode.torch);
+        break;
+      case FlashMode.torch:
+        setFlashMode(FlashMode.off);
+        break;
+      default:
+        break;
+    }
+  };
+
   const savePicture = async () => {
     const picture = currentImage;
     if (picture) {
       const ImageAsset = await covertUriToAsset([picture.uri]);
-
       await addImagesToAlbum(ImageAsset);
+
+      setCurrentImage(null);
+      showImageSaveSuccessToast();
     }
   };
 
@@ -60,20 +101,26 @@ export default function Capture() {
         {currentImage ? (
           <Image style={styles.preview} source={{ uri: currentImage.uri }} />
         ) : (
-          <Camera style={styles.camera} type={CameraType.back} ref={cameraRef}>
-            {/* <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
-        </View> */}
-          </Camera>
+          <Camera
+            style={styles.camera}
+            type={cameraType}
+            ref={cameraRef}
+            flashMode={flashMode}
+          />
         )}
       </Stack>
       <CameraController
+        cameraType={cameraType}
+        flashMode={flashMode}
+        toggleFlashMode={toggleFlashMode}
+        toggleCameraType={toggleCameraType}
         isPreview={currentImage !== null}
         onDiscard={() => setCurrentImage(null)}
         onCapture={takePicture}
         onSave={savePicture}
+        onAnnotate={() => {
+          console.log("annotate");
+        }}
       />
     </YStack>
   );

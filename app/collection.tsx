@@ -13,6 +13,7 @@ import {
   getAssetListFromAlbum,
   covertUriToAsset,
 } from "../utils/media-lib";
+import Toast from "react-native-toast-message";
 
 export default function ImageList() {
   const theme = useTheme();
@@ -54,6 +55,13 @@ export default function ImageList() {
     return null;
   }
 
+  const showImagePickerErrorToast = () => {
+    Toast.show({
+      type: "error",
+      text1: "No images selected",
+    });
+  };
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 1,
@@ -73,9 +81,12 @@ export default function ImageList() {
      * * If album is null, create a new album and add images to it.
      * * (Needed for special case of android)
      */
-    const imageAssets = await pickImage();
-    // TODO: Catch error if user cancels
-    addImagesToAlbum(imageAssets);
+    try {
+      const imageAssets = await pickImage();
+      addImagesToAlbum(imageAssets);
+    } catch (error) {
+      showImagePickerErrorToast();
+    }
   };
 
   const onRequestRemoveImage = async (id: string) => {
@@ -117,7 +128,7 @@ export default function ImageList() {
               color={theme.green10.val}
             />
           }
-          onPress={onRequestAddImages}
+          onPress={() => router.push("capture")}
         >
           Camera
         </Button>
