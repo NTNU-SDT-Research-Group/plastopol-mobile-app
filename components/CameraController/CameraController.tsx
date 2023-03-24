@@ -4,6 +4,7 @@ import { ToggleButton } from "./components/ToggleButton";
 import { CameraType, FlashMode } from "expo-camera";
 import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
+import BottomBar from "../BottomBar";
 
 type CameraControllerProps = {
   isPreview: boolean;
@@ -58,7 +59,7 @@ export default function CameraController({
   };
 
   return (
-    <XStack h={64} justifyContent="center" alignItems="center" space="$2">
+    <BottomBar justifyContent="center" space="$2">
       {isPreview ? (
         <Button
           flex={1}
@@ -102,6 +103,6 @@ export default function CameraController({
       ) : (
         <XStack flex={1}></XStack>
       )}
-    </XStack>
+    </BottomBar>
   );
 }

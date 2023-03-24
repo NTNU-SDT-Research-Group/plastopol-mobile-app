@@ -1,11 +1,11 @@
 import React from "react";
-import { Button, XStack, YStack, useTheme } from "tamagui";
-import ImageRoll from "../components/ImageRoll/ImageRoll";
-import { Album, Asset } from "expo-media-library";
+import { YStack } from "tamagui";
+import ImageRoll, { ImageRollController } from "../components/ImageRoll";
+import { Album } from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "../@types/global";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+
 import { useRouter } from "expo-router";
 import { useStore } from "../state";
 import {
@@ -16,7 +16,6 @@ import {
 import Toast from "react-native-toast-message";
 
 export default function ImageList() {
-  const theme = useTheme();
   const router = useRouter();
 
   const imageList = useStore((state) => state.imageList);
@@ -109,44 +108,7 @@ export default function ImageList() {
       <YStack flex={1}>
         <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
       </YStack>
-      <XStack
-        style={{
-          shadowColor: theme.gray12.val,
-          shadowRadius: 30,
-          elevation: 4,
-        }}
-        p="$2"
-        space="$2"
-        bg="white"
-      >
-        <Button
-          flex={1}
-          icon={
-            <MaterialIcon
-              name="monochrome-photos"
-              size={20}
-              color={theme.green10.val}
-            />
-          }
-          onPress={() => router.push("capture")}
-        >
-          Camera
-        </Button>
-        <Button
-          flex={1}
-          alignItems="center"
-          icon={
-            <MaterialIcon
-              name="photo-library"
-              size={20}
-              color={theme.green10.val}
-            />
-          }
-          onPress={onRequestAddImages}
-        >
-          Import
-        </Button>
-      </XStack>
+      <ImageRollController onRequestAddImages={onRequestAddImages} />
     </YStack>
   );
 }
