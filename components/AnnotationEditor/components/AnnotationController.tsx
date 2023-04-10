@@ -1,6 +1,5 @@
 import React from "react";
 import { Button, XStack, useTheme } from "tamagui";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
 import BottomBar from "../../BottomBar";
 

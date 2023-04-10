@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Sheet, Text } from "tamagui";
+import React, { useEffect, useState } from "react";
+import { Circle, Input, Sheet, Text, XStack, YStack } from "tamagui";
 import { useStore } from "../../../state";
 
 type LabelSheetProps = {
@@ -17,6 +17,16 @@ export function LabelSheet({
 }: LabelSheetProps) {
   const labelMap = useStore((state) => state.labelMap);
   const [position, setPosition] = useState(2);
+  const [filterText, setFilterText] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setPosition(2);
+      setFilterText("");
+    }
+  }, [open]);
+
+  const sheetRef = React.useRef(null);
 
   if (!labelId) {
     return null;
@@ -35,8 +45,56 @@ export function LabelSheet({
     >
       <Sheet.Handle />
       <Sheet.Frame flex={1} p="$2">
-        <Text>{labelMap[labelId].title}</Text>
-        <Sheet.ScrollView p="$2" space></Sheet.ScrollView>
+        <YStack space="$2">
+          <XStack
+            onPress={() => setPosition(1)}
+            h={"$5"}
+            bg={`rgba(${labelMap[labelId].color}, 0.3)`}
+            borderRadius={5}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Text fontSize={28}>{labelMap[labelId].title}</Text>
+          </XStack>
+          <XStack>
+            <Input
+              placeholder="Filter labels by..."
+              width={"100%"}
+              size="$4"
+              borderWidth={2}
+              value={filterText}
+              onChangeText={setFilterText}
+            />
+          </XStack>
+        </YStack>
+        <Sheet.ScrollView pt="$2" space>
+          {Object.keys(labelMap)
+            .filter((innerLabelId) => innerLabelId !== labelId)
+            .filter(
+              (innerLabelId) =>
+                filterText === "" || innerLabelId.includes(filterText)
+            )
+            .map((innerLabelId) => (
+              <XStack
+                p="$2"
+                borderRadius={5}
+                borderWidth={1}
+                key={innerLabelId}
+                borderColor={`rgba(${labelMap[innerLabelId].color}, 0.5)`}
+                space="$2"
+                alignItems="center"
+                onPress={() => {
+                  onChangeLabel(innerLabelId);
+                }}
+              >
+                <Circle
+                  size="$1"
+                  bg={`rgba(${labelMap[innerLabelId].color}, 0.5)`}
+                />
+                <Text fontSize={22}>{labelMap[innerLabelId].title}</Text>
+              </XStack>
+            ))}
+        </Sheet.ScrollView>
       </Sheet.Frame>
     </Sheet>
   );

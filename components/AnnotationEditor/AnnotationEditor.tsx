@@ -11,6 +11,7 @@ import {
   useValue,
 } from "@shopify/react-native-skia";
 import AnnotationController from "./components/AnnotationController";
+import * as Haptics from "expo-haptics";
 
 import { LabelSheet } from "./components/LabelSheet";
 
@@ -39,10 +40,10 @@ type AnnotationEditorProps = {
 export default function AnnotationEditor({ image }: AnnotationEditorProps) {
   const labelMap = useStore((state) => state.labelMap);
 
-  const annotations = annotationMap["256"] ?? [];
   const uri = useImage(image.path);
   const aspectRatio = image.width / image.height;
 
+  const [annotations, setAnnotations] = useState(annotationMap["256"] ?? {});
   const [labelSheetOpen, setLabelSheetOpen] = useState(false);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(
     null
@@ -68,6 +69,7 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
 
   const onLongPress = (id: string) => {
     setLabelSheetOpen(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setActiveAnnotationId(id);
   };
 
@@ -149,6 +151,7 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
         onChangeLabel={(labelId: string) => {
           if (activeAnnotationId) {
             annotations[activeAnnotationId].labelId = labelId;
+            setAnnotations({ ...annotations });
           }
         }}
         open={labelSheetOpen}

@@ -39,7 +39,8 @@
     "react-native-toast-message": "^2.1.6",
     "react-native-web": "^0.18.12",
     "tamagui": "^1.6.2",
-    "zustand": "^4.3.6"
+    "zustand": "^4.3.6",
+    "expo-haptics": "~12.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
