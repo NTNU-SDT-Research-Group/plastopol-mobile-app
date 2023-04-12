@@ -17,7 +17,7 @@ type GestureHandlerProps = {
   debug?: boolean;
 };
 
-export function CanvasGestureHandler({
+export function ImageGestureHandler({
   dimensions,
   debug,
   matrix,

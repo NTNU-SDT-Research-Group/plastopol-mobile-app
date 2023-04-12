@@ -20,7 +20,7 @@ type AnnotationGestureHandlerProps = {
   onLongPress: (id: string) => void;
 };
 
-export function AnnotationGestureHandler({
+export function ModifyAnnotationGestureHandler({
   id,
   dimensions,
   baseMatrix,
