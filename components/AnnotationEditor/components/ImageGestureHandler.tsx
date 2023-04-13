@@ -7,22 +7,26 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { concat, vec3 } from "../utils/MatrixHelper";
-import {
-  SkRect,
-} from "@shopify/react-native-skia";
+import { SkRect } from "@shopify/react-native-skia";
+import { Image } from "react-native";
 
 type GestureHandlerProps = {
   matrix: SharedValue<Matrix4>;
   dimensions: SkRect;
-  debug?: boolean;
+  uri: string;
+  imageDimensions: SkRect;
+  baseX: number;
+  baseY: number;
 };
 
 export function ImageGestureHandler({
   dimensions,
-  debug,
   matrix,
+  uri,
+  baseX,
+  baseY,
+  imageDimensions,
 }: GestureHandlerProps) {
-  
   const offset = useSharedValue(identity4);
   const origin = useSharedValue(vec3(0, 0, 0));
 
@@ -44,13 +48,7 @@ export function ImageGestureHandler({
       ]);
     });
 
-  const canvasContainerStyle = useAnimatedStyle(() => ({
-    position: "absolute",
-    left: dimensions.x,
-    top: dimensions.y,
-    width: dimensions.width,
-    height: dimensions.height,
-    backgroundColor: debug ? "rgba(100, 200, 300, 0.4)" : "transparent",
+  const animatedStyles = useAnimatedStyle(() => ({
     transform: [
       { translateX: -dimensions.width / 2 },
       { translateY: -dimensions.height / 2 },
@@ -62,7 +60,30 @@ export function ImageGestureHandler({
 
   return (
     <GestureDetector gesture={Gesture.Race(scale, pan)}>
-      <Animated.View style={[{ flex: 1 }, canvasContainerStyle]} />
+      <Animated.View
+        style={[
+          {
+            flex: 1,
+            width: dimensions.width,
+            height: dimensions.height,
+            position: "absolute",
+            left: dimensions.x,
+            top: dimensions.y,
+          },
+          animatedStyles,
+        ]}
+      >
+        <Image
+          style={{
+            width: imageDimensions.width,
+            height: imageDimensions.height,
+            transform: [{ translateX: baseX }, { translateY: baseY }],
+          }}
+          source={{
+            uri,
+          }}
+        />
+      </Animated.View>
     </GestureDetector>
   );
 }

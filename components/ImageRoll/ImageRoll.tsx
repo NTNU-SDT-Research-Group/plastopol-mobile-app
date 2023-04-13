@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, useWindowDimensions, Stack, YStack, useTheme } from "tamagui";
 import NoImage from "./components/NoImage";
-import { Image as ImageType } from "../../@types/global";
+import { Image as ImageType } from "../types";
 import { FlatList } from "react-native";
 
 type ImageRollProps = {

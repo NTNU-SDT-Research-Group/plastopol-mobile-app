@@ -1,26 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { YStack } from "tamagui";
-import { Image as ImageType } from "../../@types/global";
+import { AnnotationModeType, Image as ImageType } from "../types";
 import {
-  Canvas,
-  Image,
   SkRect,
   Skia,
-  useImage,
   useSharedValueEffect,
   useValue,
 } from "@shopify/react-native-skia";
-import AnnotationController from "./components/AnnotationController";
+import { useSharedValue } from "react-native-reanimated";
+import { identity4, toMatrix3 } from "react-native-redash";
 import * as Haptics from "expo-haptics";
-
+import AnnotationController from "./components/AnnotationController";
 import { LabelSheet } from "./components/LabelSheet";
-
 import { ImageGestureHandler } from "./components/ImageGestureHandler";
 import { ModifyAnnotationGestureHandler } from "./components/ModifyAnnotationGestureHandler";
 import { AddAnnotationGestureHandler } from "./components/AddAnnotationGestureHandler";
-import { useSharedValue } from "react-native-reanimated";
-import { identity4, toMatrix3 } from "react-native-redash";
 import { useStore } from "../../state";
+import { getImageDimensions } from "./utils/image-dimension-processor";
 
 const annotationMap: {
   [key: string]: Record<
@@ -39,11 +35,10 @@ type AnnotationEditorProps = {
 };
 
 export default function AnnotationEditor({ image }: AnnotationEditorProps) {
-  const labelMap = useStore((state) => state.labelMap);
-
-  const uri = useImage(image.path);
+  const uri = image.path;
   const aspectRatio = image.width / image.height;
 
+  const labelMap = useStore((state) => state.labelMap);
   const [annotations, setAnnotations] = useState(annotationMap["256"] ?? {});
   const [labelSheetOpen, setLabelSheetOpen] = useState(false);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(
@@ -52,52 +47,69 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
   const [activeLabelId, setActiveLabelId] = useState<string | null>(
     Object.keys(labelMap)[0]
   );
-  const [mode, setMode] = useState<
-    "preview" | "edit-add-annotation" | "edit-modify-annotation" | "edit"
-  >("edit");
-  const [gestureContainerDimensions, setGestureContainerDimensions] =
-    useState<null | { width: number; height: number; x: number; y: number }>(
-      null
-    );
+  const [mode, setMode] = useState<AnnotationModeType>(
+    AnnotationModeType.EDIT_MASTER
+  );
+  const [containerDimensions, setContainerDimensions] = useState<null | {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  }>(null);
 
   const matrix = useSharedValue(identity4);
   const pictureMatrix = useValue(Skia.Matrix());
-
-  useEffect(() => {
-    if (!labelSheetOpen) {
-      setActiveAnnotationId(null);
-    }
-
-    if (!labelSheetOpen && mode === "edit-add-annotation") {
-      setMode("edit");
-      setActiveAnnotationId(null);
-    }
-  }, [labelSheetOpen]);
 
   useSharedValueEffect(() => {
     // * INFO: changing outer matrix controlling image with the inner matrix controlled by gesture handler
     pictureMatrix.current = Skia.Matrix(toMatrix3(matrix.value));
   }, matrix);
 
-  const requestAddMode = () => {
-    setMode("edit-add-annotation");
-    setLabelSheetOpen(true);
-  };
+  // If label sheet is closed, reset mode
+  useEffect(() => {
+    if (!labelSheetOpen) {
+      setMode(AnnotationModeType.EDIT_MASTER);
+    }
+  }, [labelSheetOpen]);
 
-  const cancelAddMode = () => {
-    setMode("edit");
-    setLabelSheetOpen(false);
-  };
+  // If mode is edit master, reset activate label and annotation
+  useEffect(() => {
+    switch (mode) {
+      case AnnotationModeType.EDIT_MASTER: {
+        setActiveLabelId(null);
+        setActiveAnnotationId(null);
+        setLabelSheetOpen(false);
+        break;
+      }
+      case AnnotationModeType.EDIT_ADD_ANNOTATION: {
+        setLabelSheetOpen(true);
+        if(activeLabelId === null) {
+          setActiveLabelId(Object.keys(labelMap)[0]);
+        }
+        break;
+      }
+      case AnnotationModeType.EDIT_MODIFY_ANNOTATION: {
+        setLabelSheetOpen(true);
+        break;
+      }
+    }
+  }, [mode]);
+
+  const labelId = useMemo(() => {
+    if (mode === AnnotationModeType.EDIT_ADD_ANNOTATION) {
+      return activeLabelId;
+    } else {
+      return activeAnnotationId
+        ? annotations[activeAnnotationId].labelId
+        : null;
+    }
+  }, [mode, activeAnnotationId, activeLabelId, annotations]);
 
   const requestModifyAnnotationMode = (id: string) => {
-    setMode("edit-modify-annotation");
-    setLabelSheetOpen(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setActiveAnnotationId(id);
-  };
 
-  const onChangeAddLabel = (labelId: string) => {
-    setActiveLabelId(labelId);
+    setMode(AnnotationModeType.EDIT_MODIFY_ANNOTATION);
+    setActiveAnnotationId(id);
   };
 
   const onAddAnnotation = (
@@ -118,49 +130,34 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
       },
     });
 
-    setMode("edit");
-    setLabelSheetOpen(false);
+    setMode(AnnotationModeType.EDIT_MASTER);
   };
 
-  const getLabel = () => {
-    if (mode === "edit-add-annotation") {
-      return activeLabelId;
-    } else {
-      return activeAnnotationId
-        ? annotations[activeAnnotationId].labelId
-        : null;
-    }
-  };
-
-  const onModifyAnnotation = (labelId: string) => {
+  const onChangeAnnotationLabel = (labelId: string) => {
     if (activeAnnotationId) {
       annotations[activeAnnotationId].labelId = labelId;
       setAnnotations({ ...annotations });
     }
   };
 
-  const onRemoveAnnotation = () => {
+  const onDeleteAnnotation = () => {
     if (activeAnnotationId) {
       delete annotations[activeAnnotationId];
       setAnnotations({ ...annotations });
+
+       // * INFO: reset active annotation id here else label breaks
+      setActiveAnnotationId(null);
     }
 
-    setActiveAnnotationId(null);
-    setLabelSheetOpen(false);
-    setMode("edit");
-  }
+    setMode(AnnotationModeType.EDIT_MASTER);
+  };
 
-  const imageWidth = gestureContainerDimensions?.width ?? 0;
-  const imageHeight = (gestureContainerDimensions?.width ?? 0) / aspectRatio;
-
-  const imageX =
-    ((gestureContainerDimensions ? gestureContainerDimensions.width : 0) -
-      imageWidth) /
-    2;
-  const imageY =
-    ((gestureContainerDimensions ? gestureContainerDimensions.height : 0) -
-      imageHeight) /
-    2;
+  const {
+    x: baseX,
+    y: baseY,
+    width: baseWidth,
+    height: baseHeight,
+  } = getImageDimensions(containerDimensions, aspectRatio);
 
   if (!uri) {
     return null;
@@ -172,40 +169,33 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
         flex={1}
         onLayout={(event) => {
           const layout = event.nativeEvent.layout;
-          setGestureContainerDimensions({
+          setContainerDimensions({
             ...layout,
           });
         }}
       >
-        {gestureContainerDimensions !== null && (
+        {containerDimensions !== null && (
           <>
-            <Canvas style={{ flex: 1, backgroundColor: "black" }}>
-              <Image
-                image={uri}
-                fit="contain"
-                // the x y change is need to center the image
-                x={imageX} // top left corner of image
-                y={imageY} // top left corner of image
-                width={imageWidth}
-                height={imageHeight}
-                matrix={pictureMatrix}
-              />
-            </Canvas>
-
             <ImageGestureHandler
-              dimensions={gestureContainerDimensions as SkRect}
+              uri={uri}
+              dimensions={containerDimensions as SkRect}
+              imageDimensions={
+                { width: baseWidth, height: baseHeight } as SkRect
+              }
+              baseX={baseX}
+              baseY={baseY}
               matrix={matrix}
             />
 
-            {mode === "edit-add-annotation" && (
+            {mode === AnnotationModeType.EDIT_ADD_ANNOTATION && (
               <AddAnnotationGestureHandler
                 baseMatrix={matrix}
-                baseX={imageX}
-                baseY={imageY}
+                baseX={baseX}
+                baseY={baseY}
                 dimensions={
                   {
-                    width: imageWidth,
-                    height: imageHeight,
+                    width: baseWidth,
+                    height: baseHeight,
                   } as SkRect
                 }
                 onAddAnnotation={onAddAnnotation}
@@ -216,6 +206,10 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
               ([id, { x, y, width, height, labelId }]) => (
                 <ModifyAnnotationGestureHandler
                   key={id}
+                  isEditable={
+                    mode === AnnotationModeType.EDIT_MODIFY_ANNOTATION &&
+                    id === activeAnnotationId
+                  }
                   dimensions={
                     {
                       x,
@@ -227,8 +221,8 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
                   id={id}
                   color={labelMap[labelId].color}
                   baseMatrix={matrix}
-                  baseX={imageX}
-                  baseY={imageY}
+                  baseX={baseX}
+                  baseY={baseY}
                   onLongPress={requestModifyAnnotationMode}
                 />
               )
@@ -236,21 +230,25 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
           </>
         )}
       </YStack>
+
       <LabelSheet
-        labelId={getLabel()}
+        labelId={labelId}
         onChangeLabel={
-          mode === "edit-modify-annotation"
-            ? onModifyAnnotation
-            : onChangeAddLabel
+          mode === AnnotationModeType.EDIT_MODIFY_ANNOTATION
+            ? onChangeAnnotationLabel
+            : setActiveLabelId
         }
         open={labelSheetOpen}
         setOpen={setLabelSheetOpen}
       />
+
       <AnnotationController
         mode={mode}
-        onCancelAdd={cancelAddMode}
-        onRequestAdd={requestAddMode}
-        onRemoveAnnotation={onRemoveAnnotation}
+        onCancelAddMode={() => setMode(AnnotationModeType.EDIT_MASTER)}
+        onChangeToAddMode={() =>
+          setMode(AnnotationModeType.EDIT_ADD_ANNOTATION)
+        }
+        onDeleteAnnotation={onDeleteAnnotation}
       />
     </YStack>
   );

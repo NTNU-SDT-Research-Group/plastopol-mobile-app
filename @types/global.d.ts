@@ -11,20 +11,4 @@ export type BaseTheme = {
   colorFocus: string | Variable<any>,
   shadowColor: string | Variable<any>,
   shadowColorHover: string | Variable<any>,
-}
-
-export type Annotation = {
-  id: string;
-}
-
-export type Image = {
-  id: string;
-  height: number;
-  width: number;
-  path: string;
-  modificationTime: number;
-}
-
-export type ImageWithAnnotation = Image & {
-  annotations: Annotation | null;
 };

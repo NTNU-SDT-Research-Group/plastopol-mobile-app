@@ -18,6 +18,7 @@ type AnnotationGestureHandlerProps = {
   baseX: number;
   baseY: number;
   onLongPress: (id: string) => void;
+  isEditable: boolean;
 };
 
 export function ModifyAnnotationGestureHandler({
@@ -27,13 +28,16 @@ export function ModifyAnnotationGestureHandler({
   color = "100, 200, 300",
   baseX,
   baseY,
-  onLongPress
+  onLongPress,
+  isEditable,
 }: AnnotationGestureHandlerProps) {
   const matrix = useSharedValue(identity4);
   const offset = useSharedValue(identity4);
   const origin = useSharedValue(vec3(0, 0, 0));
 
   const pan = Gesture.Pan().onChange((event) => {
+    if (!isEditable) return;
+
     matrix.value = multiply4(
       matrix.value,
       Matrix4.translate(event.changeX, event.changeY, 0)
@@ -55,7 +59,7 @@ export function ModifyAnnotationGestureHandler({
     runOnJS(onLongPress)(id);
   });
 
-  const canvasContainerStyle = useAnimatedStyle(() => ({
+  const animatedStyles = useAnimatedStyle(() => ({
     transform: [
       { translateX: -dimensions.width / 2 },
       { translateY: -dimensions.height / 2 },
@@ -71,7 +75,7 @@ export function ModifyAnnotationGestureHandler({
         style={[
           {
             flex: 1,
-            backgroundColor: `rgba(${color}, 0.2)`,
+            backgroundColor: isEditable ? `rgba(${color}, 0.2)` : undefined,
             borderColor: `rgba(${color}, 0.7)`,
             borderWidth: 1,
             position: "absolute",
@@ -80,7 +84,7 @@ export function ModifyAnnotationGestureHandler({
             width: dimensions.width,
             height: dimensions.height,
           },
-          canvasContainerStyle,
+          animatedStyles,
         ]}
       />
     </GestureDetector>

@@ -2,28 +2,29 @@ import React from "react";
 import { Button, useTheme } from "tamagui";
 import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
 import BottomBar from "../../BottomBar";
+import { AnnotationModeType } from "../../types";
 
 type AnnotationControllerProps = {
-  mode: "preview" | "edit-add-annotation" | "edit-modify-annotation" | "edit";
-  onRequestAdd: () => void;
-  onCancelAdd: () => void;
-  onRemoveAnnotation: () => void;
+  mode: AnnotationModeType;
+  onChangeToAddMode: () => void;
+  onCancelAddMode: () => void;
+  onDeleteAnnotation: () => void;
 };
 
 export default function AnnotationController({
   mode,
-  onRequestAdd,
-  onCancelAdd,
-  onRemoveAnnotation,
+  onChangeToAddMode,
+  onCancelAddMode,
+  onDeleteAnnotation,
 }: AnnotationControllerProps) {
   const theme = useTheme();
 
-  if (mode === "edit-add-annotation") {
+  if (mode === AnnotationModeType.EDIT_ADD_ANNOTATION) {
     return (
       <BottomBar zIndex={2} space="$2">
         <Button
           flex={1}
-          onPress={onCancelAdd}
+          onPress={onCancelAddMode}
           alignItems="center"
           icon={
             <MaterialCommunityIcon
@@ -41,10 +42,10 @@ export default function AnnotationController({
 
   return (
     <BottomBar zIndex={2} space="$2">
-      {mode === "edit-modify-annotation" ? (
+      {mode === AnnotationModeType.EDIT_MODIFY_ANNOTATION ? (
         <Button
           flex={1}
-          onPress={onRemoveAnnotation}
+          onPress={onDeleteAnnotation}
           alignItems="center"
           icon={
             <MaterialCommunityIcon
@@ -59,7 +60,7 @@ export default function AnnotationController({
       ) : (
         <Button
           flex={1}
-          onPress={onRequestAdd}
+          onPress={onChangeToAddMode}
           alignItems="center"
           icon={
             <MaterialCommunityIcon

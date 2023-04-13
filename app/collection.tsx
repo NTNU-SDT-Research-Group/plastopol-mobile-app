@@ -4,7 +4,7 @@ import ImageRoll, { ImageRollController } from "../components/ImageRoll";
 import { Album } from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
-import { Image } from "../@types/global";
+import { Image } from "../components/types";
 
 import { useRouter } from "expo-router";
 import { useStore } from "../state";
