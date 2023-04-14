@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { YStack } from "tamagui";
 import ImageRoll, { ImageRollController } from "../components/ImageRoll";
 import { Album } from "expo-media-library";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "../components/types";
+import * as Haptics from "expo-haptics";
 
 import { useRouter } from "expo-router";
 import { useStore } from "../state";
@@ -14,34 +15,70 @@ import {
   covertUriToAsset,
 } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
+import { databaseContext } from "../providers/DatabaseProvider";
 
 export default function ImageList() {
   const router = useRouter();
 
+  const {
+    getImageIdsWithValidAnnotations,
+    addAnnotationUpdateListener,
+    removeAnnotationUpdateListener,
+    cleanupStaleAnnotations
+  } = useContext(databaseContext);
+
   const imageList = useStore((state) => state.imageList);
   const setImageList = useStore((state) => state.setImageList);
+  const [annotatedImageIdMap, setAnnotatedImageIdMap] = useState({});
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedImageIdMap, setSelectedImageIdMap] = useState<
+    Record<string, boolean>
+  >({});
 
-  const { album, addImagesToAlbum, permission } = useAlbum({
-    imageStorageLocation: IMAGE_STORAGE_LOCATION,
-    onAlbumUpdate: async (album: Album) => {
-      try {
-        const imageAssets = await getAssetListFromAlbum(album);
+  const { album, addImagesToAlbum, deleteImagesFromAlbum, permission } =
+    useAlbum({
+      imageStorageLocation: IMAGE_STORAGE_LOCATION,
+      onAlbumUpdate: async (album: Album) => {
+        try {
+          const imageAssets = await getAssetListFromAlbum(album);
 
-        setImageList(
-          imageAssets.assets.map((asset) => ({
-            width: asset.width,
-            height: asset.height,
-            id: asset.id,
-            annotations: null,
-            path: asset.uri,
-            modificationTime: asset.modificationTime,
-          }))
+          setImageList(
+            imageAssets.assets.map((asset) => ({
+              width: asset.width,
+              height: asset.height,
+              id: asset.id,
+              annotations: null,
+              path: asset.uri,
+              modificationTime: asset.modificationTime,
+            }))
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      },
+    });
+
+  useEffect(() => {
+    if (!multiSelectMode) {
+      setSelectedImageIdMap({});
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  }, [multiSelectMode]);
+
+  useEffect(() => {
+    const onAnnotationUpdate = () =>
+      getImageIdsWithValidAnnotations((imageIds) => {
+        setAnnotatedImageIdMap(
+          imageIds.reduce((acc, id) => ({ ...acc, [id]: true }), {})
         );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  });
+      });
+
+    onAnnotationUpdate();
+    addAnnotationUpdateListener(onAnnotationUpdate);
+
+    return () => removeAnnotationUpdateListener(onAnnotationUpdate);
+  }, []);
 
   // * If we don't have permissions, we show nothing.
   if (!permission?.granted) {
@@ -88,8 +125,14 @@ export default function ImageList() {
     }
   };
 
-  const onRequestRemoveImage = async (id: string) => {
-    // TODO: Implement
+  const onRequestDeleteImages = async () => {
+    const idList = imageList
+      .filter((image) => selectedImageIdMap[image.id])
+      .map((image) => image.id);
+
+    deleteImagesFromAlbum(idList);
+    cleanupStaleAnnotations(idList);
+    setMultiSelectMode(false);
   };
 
   const onRequestAnnotateImage = async (asset: Image) => {
@@ -97,7 +140,7 @@ export default function ImageList() {
     router.push({
       pathname: "/annotate",
       params: {
-        selectedAssetIDList: [asset.id, asset.id, asset.id],
+        selectedAssetIDList: [asset.id],
         isPreview: true,
       },
     });
@@ -106,9 +149,31 @@ export default function ImageList() {
   return (
     <YStack flex={1} bg="$gray2">
       <YStack flex={1}>
-        <ImageRoll imageList={imageList} onPress={onRequestAnnotateImage} />
+        <ImageRoll
+          annotatedImageIdMap={annotatedImageIdMap}
+          imageList={imageList}
+          onPress={onRequestAnnotateImage}
+          isMultiSelectMode={multiSelectMode}
+          onRequestMultiSelect={() => setMultiSelectMode(true)}
+          onSelectImage={(id: string) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setSelectedImageIdMap({
+              ...selectedImageIdMap,
+              [id]: !selectedImageIdMap[id],
+            });
+          }}
+          selectedImageIdMap={selectedImageIdMap}
+        />
       </YStack>
-      <ImageRollController onRequestAddImages={onRequestAddImages} />
+      <ImageRollController
+        onCancelMultiSelect={() => {
+          setMultiSelectMode(false);
+        }}
+        isMultiSelectMode={multiSelectMode}
+        onDeleteSelectedImages={onRequestDeleteImages}
+        onRequestAddImages={onRequestAddImages}
+        selectedImageIdMap={selectedImageIdMap}
+      />
     </YStack>
   );
 }

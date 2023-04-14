@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import Header from "../components/Header";
 import Toast from "react-native-toast-message";
+import { DatabaseProvider } from "../providers/DatabaseProvider";
 
 export default function HomeLayout() {
   const [loaded, error] = useFonts({
@@ -26,17 +27,19 @@ export default function HomeLayout() {
   return (
     <TamaguiProvider config={config}>
       <Theme name="light">
-        <SafeAreaView style={styles.container}>
-          <StackRouter
-            initialRouteName="index"
-            screenOptions={{
-              headerShown: true,
-              header: (props) => <Header {...props} />,
-            }}
-          />
-          <StatusBar />
-          <Toast position="top" topOffset={108} />
-        </SafeAreaView>
+        <DatabaseProvider>
+          <SafeAreaView style={styles.container}>
+            <StackRouter
+              initialRouteName="index"
+              screenOptions={{
+                headerShown: true,
+                header: (props) => <Header {...props} />,
+              }}
+            />
+            <StatusBar />
+            <Toast position="top" topOffset={108} />
+          </SafeAreaView>
+        </DatabaseProvider>
       </Theme>
     </TamaguiProvider>
   );

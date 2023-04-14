@@ -12,9 +12,11 @@ import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import { Image, StyleSheet } from "react-native";
 import { covertUriToAsset, useAlbum } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 
 export default function Capture() {
   const cameraRef = useRef<Camera>(null);
+  const router = useRouter();
 
   const [cameraPermission, requestCameraPermission] =
     Camera.useCameraPermissions();
@@ -85,6 +87,8 @@ export default function Capture() {
 
       setCurrentImage(null);
       showImageSaveSuccessToast();
+
+      return ImageAsset[0].id;
     }
   };
 
@@ -118,8 +122,18 @@ export default function Capture() {
         onDiscard={() => setCurrentImage(null)}
         onCapture={takePicture}
         onSave={savePicture}
-        onAnnotate={() => {
-          console.log("annotate");
+        onAnnotate={async () => {
+          const assetId = await savePicture();
+          if (assetId) {
+            // navigate to annotate screen
+            router.push({
+              pathname: "/annotate",
+              params: {
+                selectedAssetIDList: [assetId],
+                isPreview: true,
+              },
+            });
+          }
         }}
       />
     </YStack>

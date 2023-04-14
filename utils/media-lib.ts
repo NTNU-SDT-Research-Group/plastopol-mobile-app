@@ -72,11 +72,19 @@ export const useAlbum = (options: useAlbumProps) => {
     }
   };
 
+  const deleteImagesFromAlbum = async (imageIDs: string[]) => {
+    if (album) {
+      await MediaLibrary.removeAssetsFromAlbumAsync(imageIDs, album.id);
+      options.onAlbumUpdate && options.onAlbumUpdate(album);
+    }
+  };
+
   return {
     album,
     setAlbum,
     addImagesToAlbum,
     permission,
+    deleteImagesFromAlbum
   };
 };
 

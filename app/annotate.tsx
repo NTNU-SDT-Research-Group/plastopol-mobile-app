@@ -21,5 +21,5 @@ export default function Annotation() {
     throw Error('Image with ID "' + activeEditable + '" not found.');
   }
 
-  return <AnnotationEditor image={imageWithAnnotation} />;
+  return <AnnotationEditor imageData={imageWithAnnotation} />;
 }

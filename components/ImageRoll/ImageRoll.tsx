@@ -2,14 +2,29 @@ import React from "react";
 import { Image, useWindowDimensions, Stack, YStack, useTheme } from "tamagui";
 import NoImage from "./components/NoImage";
 import { Image as ImageType } from "../types";
-import { FlatList } from "react-native";
+import { FlatList, Pressable } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 type ImageRollProps = {
   imageList: ImageType[];
   onPress: (asset: ImageType) => void;
+  annotatedImageIdMap: { [key: string]: boolean };
+  onRequestMultiSelect: () => void;
+  onSelectImage: (imageId: string) => void;
+  isMultiSelectMode: boolean;
+  selectedImageIdMap: { [key: string]: boolean };
 };
 
-export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
+export default function ImageRoll({
+  imageList,
+  annotatedImageIdMap,
+  onPress,
+  onRequestMultiSelect,
+  onSelectImage,
+  isMultiSelectMode,
+  selectedImageIdMap,
+}: ImageRollProps) {
   const theme = useTheme();
 
   const isEmpty = imageList.length === 0;
@@ -17,28 +32,55 @@ export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
   const { width } = useWindowDimensions();
 
   const renderItem = ({ item }: { item: ImageType }) => (
-    <Stack
-      width={width / 3}
-      aspectRatio={1}
-      justifyContent="center"
-      alignItems="center"
+    <Pressable
       key={item.id}
+      onLongPress={() => {
+        onRequestMultiSelect();
+        onSelectImage(item.id);
+      }}
+      onPress={() =>
+        !isMultiSelectMode ? onPress(item) : onSelectImage(item.id)
+      }
     >
       <Stack
-        style={{
-          width: "96%",
-          height: "96%",
-          shadowColor: theme.gray12.val,
-          shadowRadius: 30,
-          elevation: 2,
-        }}
-        onPress={() => onPress(item)}
-        borderRadius={6}
+        width={width / 3}
+        aspectRatio={1}
+        justifyContent="center"
+        alignItems="center"
+        position="relative"
       >
+        {annotatedImageIdMap[item.id] && (
+          <Stack position="absolute" top={6} left={6} zIndex={1}>
+            <MaterialCommunityIcons
+              name="image-filter-center-focus"
+              size={24}
+              color={theme.yellow6.val}
+            />
+          </Stack>
+        )}
+        {isMultiSelectMode && (
+          <Stack position="absolute" top={6} right={6} zIndex={1}>
+            {!selectedImageIdMap[item.id] ? (
+              <MaterialCommunityIcons
+                name="checkbox-blank-outline"
+                size={24}
+                color={theme.gray6.val}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="checkbox-intermediate"
+                size={24}
+                color={theme.green8.val}
+              />
+            )}
+          </Stack>
+        )}
         <Image
           style={{
-            width: "100%",
-            height: "100%",
+            zIndex: 0,
+            width: "96%",
+            height: "96%",
+            shadowColor: theme.gray12.val,
           }}
           borderRadius={6}
           src={item.path}
@@ -46,7 +88,7 @@ export default function ImageRoll({ imageList, onPress }: ImageRollProps) {
           width={100}
         />
       </Stack>
-    </Stack>
+    </Pressable>
   );
 
   return (

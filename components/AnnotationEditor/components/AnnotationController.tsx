@@ -9,6 +9,8 @@ type AnnotationControllerProps = {
   onChangeToAddMode: () => void;
   onCancelAddMode: () => void;
   onDeleteAnnotation: () => void;
+  onSaveAnnotation: () => void;
+  isDirty: boolean;
 };
 
 export default function AnnotationController({
@@ -16,6 +18,8 @@ export default function AnnotationController({
   onChangeToAddMode,
   onCancelAddMode,
   onDeleteAnnotation,
+  onSaveAnnotation,
+  isDirty
 }: AnnotationControllerProps) {
   const theme = useTheme();
 
@@ -75,15 +79,16 @@ export default function AnnotationController({
       )}
       <Button
         flex={1}
-        onPress={() => {}}
+        onPress={onSaveAnnotation}
         alignItems="center"
         icon={
           <MaterialCommunityIcon
             name="content-save"
             size={20}
-            color={theme.green10.val}
+            color={isDirty ? theme.green10.val : theme.gray9.val}
           />
         }
+        disabled={!isDirty}
       >
         Save
       </Button>

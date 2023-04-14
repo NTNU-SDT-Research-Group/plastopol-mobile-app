@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Image } from "../components/types";
+import { Image, Annotation } from "../components/types";
 
 interface GlobalState {
   imageList: Image[];

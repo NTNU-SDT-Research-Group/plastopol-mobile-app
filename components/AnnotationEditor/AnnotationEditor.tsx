@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { YStack } from "tamagui";
 import { AnnotationModeType, Image as ImageType } from "../types";
 import {
@@ -17,33 +17,36 @@ import { ModifyAnnotationGestureHandler } from "./components/ModifyAnnotationGes
 import { AddAnnotationGestureHandler } from "./components/AddAnnotationGestureHandler";
 import { useStore } from "../../state";
 import { getImageDimensions } from "./utils/image-dimension-processor";
-
-const annotationMap: {
-  [key: string]: Record<
-    string,
-    { labelId: string; x: number; y: number; width: number; height: number }
-  >;
-} = {
-  "256": {
-    "1": { labelId: "label1", x: 0, y: 0, width: 100, height: 100 },
-    "2": { labelId: "label2", x: 200, y: 200, width: 100, height: 100 },
-  },
-};
+import { databaseContext } from "../../providers/DatabaseProvider";
+import {
+  convertAnnotationsDraftToAnnotations,
+  convertAnnotationsToAnnotationsDraft,
+} from "./utils/annotation-utils";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import { useRouter } from "expo-router";
 
 type AnnotationEditorProps = {
-  image: ImageType;
+  imageData: ImageType;
 };
 
-export default function AnnotationEditor({ image }: AnnotationEditorProps) {
-  const uri = image.path;
-  const aspectRatio = image.width / image.height;
+export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
+  const router = useRouter();
+
+  const uri = imageData.path;
+  const imageId = imageData.id;
+  const aspectRatio = imageData.width / imageData.height;
+
+  const { getAnnotations, updateAnnotations } = useContext(databaseContext);
 
   const labelMap = useStore((state) => state.labelMap);
-  const [annotations, setAnnotations] = useState(annotationMap["256"] ?? {});
+  const [annotationsMap, setAnnotationsMap] = useState(
+    convertAnnotationsToAnnotationsDraft([])
+  );
   const [labelSheetOpen, setLabelSheetOpen] = useState(false);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(
     null
   );
+  const [isDirty, setIsDirty] = useState(false);
   const [activeLabelId, setActiveLabelId] = useState<string | null>(
     Object.keys(labelMap)[0]
   );
@@ -65,6 +68,15 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
     pictureMatrix.current = Skia.Matrix(toMatrix3(matrix.value));
   }, matrix);
 
+  // Load annotations
+  useEffect(() => {
+    getAnnotations(imageId, (annotations) => {
+      if (annotations.length > 0) {
+        setAnnotationsMap(convertAnnotationsToAnnotationsDraft(annotations));
+      }
+    });
+  }, []);
+
   // If label sheet is closed, reset mode
   useEffect(() => {
     if (!labelSheetOpen) {
@@ -83,7 +95,7 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
       }
       case AnnotationModeType.EDIT_ADD_ANNOTATION: {
         setLabelSheetOpen(true);
-        if(activeLabelId === null) {
+        if (activeLabelId === null) {
           setActiveLabelId(Object.keys(labelMap)[0]);
         }
         break;
@@ -100,10 +112,17 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
       return activeLabelId;
     } else {
       return activeAnnotationId
-        ? annotations[activeAnnotationId].labelId
+        ? annotationsMap[activeAnnotationId].labelId
         : null;
     }
-  }, [mode, activeAnnotationId, activeLabelId, annotations]);
+  }, [mode, activeAnnotationId, activeLabelId, annotationsMap]);
+
+  const showAnnotationSaveSuccessToast = () => {
+    Toast.show({
+      type: "success",
+      text1: "Annotation saved",
+    });
+  };
 
   const requestModifyAnnotationMode = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -119,10 +138,18 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
     height: number
   ) => {
     const annotationId = Math.random().toString();
-    setAnnotations({
-      ...annotations,
+
+    if (!activeLabelId) {
+      throw new Error("activeLabelId is null");
+    }
+
+    setIsDirty(true);
+
+    setAnnotationsMap({
+      ...annotationsMap,
       [annotationId]: {
         labelId: activeLabelId ?? "label1",
+        id: Math.random().toString(),
         x,
         y,
         width,
@@ -135,21 +162,35 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
 
   const onChangeAnnotationLabel = (labelId: string) => {
     if (activeAnnotationId) {
-      annotations[activeAnnotationId].labelId = labelId;
-      setAnnotations({ ...annotations });
+      setIsDirty(true);
+
+      annotationsMap[activeAnnotationId].labelId = labelId;
+      setAnnotationsMap({ ...annotationsMap });
     }
   };
 
   const onDeleteAnnotation = () => {
     if (activeAnnotationId) {
-      delete annotations[activeAnnotationId];
-      setAnnotations({ ...annotations });
+      setIsDirty(true);
 
-       // * INFO: reset active annotation id here else label breaks
+      delete annotationsMap[activeAnnotationId];
+      setAnnotationsMap({ ...annotationsMap });
+
+      // * INFO: reset active annotation id here else label breaks
       setActiveAnnotationId(null);
     }
 
     setMode(AnnotationModeType.EDIT_MASTER);
+  };
+
+  const onSaveAnnotation = () => {
+    updateAnnotations(
+      imageId,
+      convertAnnotationsDraftToAnnotations(annotationsMap)
+    );
+
+    showAnnotationSaveSuccessToast();
+    router.back();
   };
 
   const {
@@ -202,7 +243,7 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
               />
             )}
 
-            {Object.entries(annotations).map(
+            {Object.entries(annotationsMap).map(
               ([id, { x, y, width, height, labelId }]) => (
                 <ModifyAnnotationGestureHandler
                   key={id}
@@ -249,6 +290,8 @@ export default function AnnotationEditor({ image }: AnnotationEditorProps) {
           setMode(AnnotationModeType.EDIT_ADD_ANNOTATION)
         }
         onDeleteAnnotation={onDeleteAnnotation}
+        onSaveAnnotation={onSaveAnnotation}
+        isDirty={isDirty}
       />
     </YStack>
   );
