@@ -8,7 +8,7 @@ import { Image } from "../components/types";
 import * as Haptics from "expo-haptics";
 
 import { useRouter } from "expo-router";
-import { useStore } from "../state";
+import { useStore } from "../store";
 import {
   useAlbum,
   getAssetListFromAlbum,
@@ -51,7 +51,7 @@ export default function ImageList() {
               path: asset.uri,
               modificationTime: asset.modificationTime,
             }))
-          );
+          );     
         } catch (error) {
           console.error(error);
         }

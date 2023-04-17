@@ -10,14 +10,20 @@ import { useState } from "react";
 import CameraController from "../components/CameraController";
 import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import { Image, StyleSheet } from "react-native";
-import { covertUriToAsset, useAlbum } from "../utils/media-lib";
+import {
+  covertUriToAsset,
+  getAssetListFromAlbum,
+  useAlbum,
+} from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import { useStore } from "../store";
 
 export default function Capture() {
   const cameraRef = useRef<Camera>(null);
   const router = useRouter();
 
+  const setImageList = useStore((state) => state.setImageList);
   const [cameraPermission, requestCameraPermission] =
     Camera.useCameraPermissions();
   const {
@@ -26,6 +32,24 @@ export default function Capture() {
     permission: albumPermission,
   } = useAlbum({
     imageStorageLocation: IMAGE_STORAGE_LOCATION,
+    onAlbumUpdate: async (album) => {
+      try {
+        const imageAssets = await getAssetListFromAlbum(album);
+
+        setImageList(
+          imageAssets.assets.map((asset) => ({
+            width: asset.width,
+            height: asset.height,
+            id: asset.id,
+            annotations: null,
+            path: asset.uri,
+            modificationTime: asset.modificationTime,
+          }))
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    },
   });
   const [cameraType, setCameraType] = useState<CameraType>(CameraType.back);
   const [flashMode, setFlashMode] = useState<FlashMode>(FlashMode.off);
@@ -87,8 +111,6 @@ export default function Capture() {
 
       setCurrentImage(null);
       showImageSaveSuccessToast();
-
-      return ImageAsset[0].id;
     }
   };
 
@@ -96,6 +118,22 @@ export default function Capture() {
     if (cameraRef.current) {
       const data = await cameraRef.current.takePictureAsync();
       setCurrentImage(data);
+    }
+  };
+
+  const onAnnotate = async () => {
+    await savePicture();
+    if (album) {
+      // navigate to annotate screen
+      const imageAssets = await getAssetListFromAlbum(album);
+      const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
+      router.push({
+        pathname: "/annotate",
+        params: {
+          selectedAssetIDList: [assetId],
+          isPreview: true,
+        },
+      });
     }
   };
 
@@ -110,6 +148,7 @@ export default function Capture() {
             type={cameraType}
             ref={cameraRef}
             flashMode={flashMode}
+            ratio="16:9"
           />
         )}
       </Stack>
@@ -122,19 +161,7 @@ export default function Capture() {
         onDiscard={() => setCurrentImage(null)}
         onCapture={takePicture}
         onSave={savePicture}
-        onAnnotate={async () => {
-          const assetId = await savePicture();
-          if (assetId) {
-            // navigate to annotate screen
-            router.push({
-              pathname: "/annotate",
-              params: {
-                selectedAssetIDList: [assetId],
-                isPreview: true,
-              },
-            });
-          }
-        }}
+        onAnnotate={onAnnotate}
       />
     </YStack>
   );

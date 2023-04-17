@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Circle, Input, Sheet, Text, XStack, YStack } from "tamagui";
-import { useStore } from "../../../state";
+import { useStore } from "../../../store";
 
 type LabelSheetProps = {
   open: boolean;
@@ -38,7 +38,7 @@ export function LabelSheet({
       >
         <Text fontSize={28}>{labelMap[labelId].title}</Text>
       </XStack>
-      <XStack>
+      <XStack pt="$2">
         <Input
           placeholder="Filter labels by..."
           width={"100%"}

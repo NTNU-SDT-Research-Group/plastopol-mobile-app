@@ -2,8 +2,10 @@ import { useSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useStore } from "../state";
+import { useStore } from "../store";
 import AnnotationEditor from "../components/AnnotationEditor/AnnotationEditor";
+import { useAlbum } from "../utils/media-lib";
+import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 
 export default function Annotation() {
   const params = useSearchParams();

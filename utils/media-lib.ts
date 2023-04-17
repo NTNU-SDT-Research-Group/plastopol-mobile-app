@@ -38,18 +38,18 @@ export const useAlbum = (options: useAlbumProps) => {
     }
   }, [album]);
 
-  const createAlbum = async (images: MediaLibrary.Asset[]) => {
+  const createAlbum = async (images: MediaLibrary.Asset[], copy: boolean) => {
     try {
       const [first, ...rest] = images;
 
       const createdAlbum = await MediaLibrary.createAlbumAsync(
         options.imageStorageLocation,
         first,
-        false
+        copy
       );
 
       if (rest.length !== 0) {
-        await MediaLibrary.addAssetsToAlbumAsync(rest, createdAlbum!.id, false);
+        await MediaLibrary.addAssetsToAlbumAsync(rest, createdAlbum!.id, copy);
       }
 
       setAlbum(createdAlbum);
@@ -62,12 +62,12 @@ export const useAlbum = (options: useAlbumProps) => {
     throw Error("Could not create album.");
   };
 
-  const addImagesToAlbum = async (imageAssets: MediaLibrary.Asset[]) => {
+  const addImagesToAlbum = async (imageAssets: MediaLibrary.Asset[], copy: boolean = false) => {
     if (!album) {
-      const createdAlbum = await createAlbum(imageAssets);
+      const createdAlbum = await createAlbum(imageAssets, copy);
       options.onAlbumUpdate && options.onAlbumUpdate(createdAlbum);
     } else {
-      await MediaLibrary.addAssetsToAlbumAsync(imageAssets, album.id, false);
+      await MediaLibrary.addAssetsToAlbumAsync(imageAssets, album.id, copy);
       options.onAlbumUpdate && options.onAlbumUpdate(album);
     }
   };

@@ -15,7 +15,7 @@ import { LabelSheet } from "./components/LabelSheet";
 import { ImageGestureHandler } from "./components/ImageGestureHandler";
 import { ModifyAnnotationGestureHandler } from "./components/ModifyAnnotationGestureHandler";
 import { AddAnnotationGestureHandler } from "./components/AddAnnotationGestureHandler";
-import { useStore } from "../../state";
+import { useStore } from "../../store";
 import { getImageDimensions } from "./utils/image-dimension-processor";
 import { databaseContext } from "../../providers/DatabaseProvider";
 import {
