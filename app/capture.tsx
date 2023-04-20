@@ -82,10 +82,15 @@ export default function Capture() {
     const picture = currentImage;
     if (picture) {
       const ImageAsset = await covertUriToAsset([picture.uri]);
-      await addImagesToAlbum(ImageAsset);
+      const album = await addImagesToAlbum(ImageAsset);
 
       setCurrentImage(null);
       showImageSaveSuccessToast();
+
+      return album;
+    }
+    else{
+      throw new Error("No image to save");
     }
   };
 
@@ -97,12 +102,14 @@ export default function Capture() {
   };
 
   const onAnnotate = async () => {
-    await savePicture();
+    // * INFO: Added this since first image updates album info in the next render
+    const album = await savePicture();
+
     if (album) {
       // navigate to annotate screen
       const imageAssets = await getAssetListFromAlbum(album);
       const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
-      router.push({
+      router.replace({
         pathname: "/annotate",
         params: {
           selectedAssetIDList: [assetId],

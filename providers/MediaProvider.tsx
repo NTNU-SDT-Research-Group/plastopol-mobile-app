@@ -17,14 +17,14 @@ import { PermissionResponse } from "expo-camera";
 
 type MediaContextProps = {
   album: Album | null | undefined;
-  addImagesToAlbum: (imageAssets: Asset[], copy?: boolean) => Promise<void>;
+  addImagesToAlbum: (imageAssets: Asset[], copy?: boolean) => Promise<Album>;
   deleteImagesFromAlbum: (imageIDs: string[]) => Promise<void>;
   permission: PermissionResponse | null;
 };
 
 export const MediaContext = createContext<MediaContextProps>({
   album: null,
-  addImagesToAlbum: () => Promise.resolve(),
+  addImagesToAlbum: () => Promise.resolve({} as Album),
   deleteImagesFromAlbum: () => Promise.resolve(),
   permission: null,
 });
@@ -119,14 +119,16 @@ export const MediaProvider = ({ children }: MediaProviderProps) => {
 
   const addImagesToAlbum = async (
     imageAssets: Asset[],
-    copy: boolean = false
+    copy: boolean = true
   ) => {
     if (!album) {
       const createdAlbum = await createAlbum(imageAssets, copy);
       options.onAlbumUpdate && options.onAlbumUpdate(createdAlbum);
+      return createdAlbum;
     } else {
       await addAssetsToAlbumAsync(imageAssets, album.id, copy);
       options.onAlbumUpdate && options.onAlbumUpdate(album);
+      return album;
     }
   };
 

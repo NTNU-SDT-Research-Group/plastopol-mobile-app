@@ -2,8 +2,6 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { YStack } from "tamagui";
 import { AnnotationModeType, Image as ImageType } from "../types";
 import { SkRect } from "@shopify/react-native-skia";
-import { useSharedValue } from "react-native-reanimated";
-import { identity4 } from "react-native-redash";
 import * as Haptics from "expo-haptics";
 import AnnotationController from "./components/AnnotationController";
 import { LabelSheet } from "./components/LabelSheet";
@@ -202,7 +200,6 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
 
     showAnnotationSaveSuccessToast();
     router.back();
-    console.log(modifiedAnnotationMap);
   };
 
   const {
