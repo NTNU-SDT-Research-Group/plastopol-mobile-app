@@ -56,6 +56,8 @@
   "private": true,
   "overrides": {
     "metro": "0.73.7",
-    "metro-resolver": "0.73.7"
+    "metro-resolver": "0.73.7",
+    "@expo/config-plugins": "~6.0.0",
+    "@expo/prebuild-config": "~6.0.0"
   }
 }
