@@ -3,6 +3,7 @@ import { Button, useTheme } from "tamagui";
 import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
 import BottomBar from "../../BottomBar";
 import { AnnotationModeType } from "../../types";
+import { useStore } from "../../../store";
 
 type AnnotationControllerProps = {
   mode: AnnotationModeType;
@@ -19,9 +20,11 @@ export default function AnnotationController({
   onCancelAddMode,
   onDeleteAnnotation,
   onSaveAnnotation,
-  isDirty
+  isDirty,
 }: AnnotationControllerProps) {
   const theme = useTheme();
+  const showLabel = useStore((state) => state.showLabel);
+  const toggleShowLabel = useStore((state) => state.toggleShowLabel);
 
   if (mode === AnnotationModeType.EDIT_ADD_ANNOTATION) {
     return (
@@ -46,6 +49,21 @@ export default function AnnotationController({
 
   return (
     <BottomBar zIndex={2} space="$2">
+      <Button circular flex={1} onPress={toggleShowLabel}>
+        {!showLabel ? (
+          <MaterialCommunityIcon
+            name="alphabetical"
+            size={28}
+            color={theme.green10.val}
+          />
+        ) : (
+          <MaterialCommunityIcon
+            name="alphabetical-off"
+            size={28}
+            color={theme.green10.val}
+          />
+        )}
+      </Button>
       {mode === AnnotationModeType.EDIT_MODIFY_ANNOTATION ? (
         <Button
           flex={1}

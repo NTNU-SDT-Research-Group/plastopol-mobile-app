@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { YStack } from "tamagui";
 import ImageRoll, { ImageRollController } from "../components/ImageRoll";
-import { Album } from "expo-media-library";
-import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "../components/types";
 import * as Haptics from "expo-haptics";
@@ -10,12 +8,11 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useStore } from "../store";
 import {
-  useAlbum,
-  getAssetListFromAlbum,
   covertUriToAsset,
 } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { databaseContext } from "../providers/DatabaseProvider";
+import { MediaContext } from "../providers/MediaProvider";
 
 export default function ImageList() {
   const router = useRouter();
@@ -24,39 +21,18 @@ export default function ImageList() {
     getImageIdsWithValidAnnotations,
     addAnnotationUpdateListener,
     removeAnnotationUpdateListener,
-    cleanupStaleAnnotations
+    cleanupStaleAnnotations,
   } = useContext(databaseContext);
 
   const imageList = useStore((state) => state.imageList);
-  const setImageList = useStore((state) => state.setImageList);
   const [annotatedImageIdMap, setAnnotatedImageIdMap] = useState({});
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedImageIdMap, setSelectedImageIdMap] = useState<
     Record<string, boolean>
   >({});
 
-  const { album, addImagesToAlbum, deleteImagesFromAlbum, permission } =
-    useAlbum({
-      imageStorageLocation: IMAGE_STORAGE_LOCATION,
-      onAlbumUpdate: async (album: Album) => {
-        try {
-          const imageAssets = await getAssetListFromAlbum(album);
-
-          setImageList(
-            imageAssets.assets.map((asset) => ({
-              width: asset.width,
-              height: asset.height,
-              id: asset.id,
-              annotations: null,
-              path: asset.uri,
-              modificationTime: asset.modificationTime,
-            }))
-          );     
-        } catch (error) {
-          console.error(error);
-        }
-      },
-    });
+  const { album, deleteImagesFromAlbum, permission, addImagesToAlbum } =
+    useContext(MediaContext);
 
   useEffect(() => {
     if (!multiSelectMode) {

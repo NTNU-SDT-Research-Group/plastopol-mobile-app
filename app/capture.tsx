@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { Stack, YStack } from "tamagui";
 import {
   Camera,
@@ -8,49 +8,24 @@ import {
 } from "expo-camera";
 import { useState } from "react";
 import CameraController from "../components/CameraController";
-import { IMAGE_STORAGE_LOCATION } from "../constants/locations";
 import { Image, StyleSheet } from "react-native";
-import {
-  covertUriToAsset,
-  getAssetListFromAlbum,
-  useAlbum,
-} from "../utils/media-lib";
+import { covertUriToAsset, getAssetListFromAlbum } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
-import { useStore } from "../store";
+import { MediaContext } from "../providers/MediaProvider";
 
 export default function Capture() {
   const cameraRef = useRef<Camera>(null);
   const router = useRouter();
 
-  const setImageList = useStore((state) => state.setImageList);
-  const [cameraPermission, requestCameraPermission] =
-    Camera.useCameraPermissions();
   const {
     album,
     addImagesToAlbum,
     permission: albumPermission,
-  } = useAlbum({
-    imageStorageLocation: IMAGE_STORAGE_LOCATION,
-    onAlbumUpdate: async (album) => {
-      try {
-        const imageAssets = await getAssetListFromAlbum(album);
+  } = useContext(MediaContext);
 
-        setImageList(
-          imageAssets.assets.map((asset) => ({
-            width: asset.width,
-            height: asset.height,
-            id: asset.id,
-            annotations: null,
-            path: asset.uri,
-            modificationTime: asset.modificationTime,
-          }))
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  });
+  const [cameraPermission, requestCameraPermission] =
+    Camera.useCameraPermissions();
   const [cameraType, setCameraType] = useState<CameraType>(CameraType.back);
   const [flashMode, setFlashMode] = useState<FlashMode>(FlashMode.off);
 

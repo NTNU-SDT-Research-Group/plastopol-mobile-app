@@ -1,26 +1,21 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { YStack } from "tamagui";
 import { AnnotationModeType, Image as ImageType } from "../types";
-import {
-  SkRect,
-  Skia,
-  useSharedValueEffect,
-  useValue,
-} from "@shopify/react-native-skia";
+import { SkRect } from "@shopify/react-native-skia";
 import { useSharedValue } from "react-native-reanimated";
-import { identity4, toMatrix3 } from "react-native-redash";
+import { identity4 } from "react-native-redash";
 import * as Haptics from "expo-haptics";
 import AnnotationController from "./components/AnnotationController";
 import { LabelSheet } from "./components/LabelSheet";
 import { ImageGestureHandler } from "./components/ImageGestureHandler";
-import { ModifyAnnotationGestureHandler } from "./components/ModifyAnnotationGestureHandler";
-import { AddAnnotationGestureHandler } from "./components/AddAnnotationGestureHandler";
 import { useStore } from "../../store";
 import { getImageDimensions } from "./utils/image-dimension-processor";
 import { databaseContext } from "../../providers/DatabaseProvider";
 import {
+  AnnotationDraft,
   convertAnnotationsDraftToAnnotations,
   convertAnnotationsToAnnotationsDraft,
+  convertFromTransformToBox,
 } from "./utils/annotation-utils";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import { useRouter } from "expo-router";
@@ -39,9 +34,10 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
   const { getAnnotations, updateAnnotations } = useContext(databaseContext);
 
   const labelMap = useStore((state) => state.labelMap);
-  const [annotationsMap, setAnnotationsMap] = useState(
+  const [annotationsMap, setAnnotationsMap] = useState<AnnotationDraft>(
     convertAnnotationsToAnnotationsDraft([])
   );
+  const draftAnnotationMap = useRef<AnnotationDraft>(annotationsMap);
   const [labelSheetOpen, setLabelSheetOpen] = useState(false);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(
     null
@@ -59,14 +55,6 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
     x: number;
     y: number;
   }>(null);
-
-  const matrix = useSharedValue(identity4);
-  const pictureMatrix = useValue(Skia.Matrix());
-
-  useSharedValueEffect(() => {
-    // * INFO: changing outer matrix controlling image with the inner matrix controlled by gesture handler
-    pictureMatrix.current = Skia.Matrix(toMatrix3(matrix.value));
-  }, matrix);
 
   // Load annotations
   useEffect(() => {
@@ -183,14 +171,38 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
     setMode(AnnotationModeType.EDIT_MASTER);
   };
 
+  const onUpdateDraft = (labelId: string, matrix: number[]) => {
+    setIsDirty(true);
+    const result = convertFromTransformToBox(
+      { ...annotationsMap[labelId] },
+      matrix
+    );
+    draftAnnotationMap.current[labelId] = {
+      ...annotationsMap[labelId],
+      ...result,
+    };
+  };
+
   const onSaveAnnotation = () => {
+    const modifiedAnnotationMap = Object.entries(annotationsMap).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [key]: {
+          ...value,
+          ...draftAnnotationMap.current[key],
+        },
+      }),
+      {}
+    );
+
     updateAnnotations(
       imageId,
-      convertAnnotationsDraftToAnnotations(annotationsMap)
+      convertAnnotationsDraftToAnnotations(modifiedAnnotationMap)
     );
 
     showAnnotationSaveSuccessToast();
     router.back();
+    console.log(modifiedAnnotationMap);
   };
 
   const {
@@ -216,59 +228,19 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
         }}
       >
         {containerDimensions !== null && (
-          <>
-            <ImageGestureHandler
-              uri={uri}
-              dimensions={containerDimensions as SkRect}
-              imageDimensions={
-                { width: baseWidth, height: baseHeight } as SkRect
-              }
-              baseX={baseX}
-              baseY={baseY}
-              matrix={matrix}
-            />
-
-            {mode === AnnotationModeType.EDIT_ADD_ANNOTATION && (
-              <AddAnnotationGestureHandler
-                baseMatrix={matrix}
-                baseX={baseX}
-                baseY={baseY}
-                dimensions={
-                  {
-                    width: baseWidth,
-                    height: baseHeight,
-                  } as SkRect
-                }
-                onAddAnnotation={onAddAnnotation}
-              />
-            )}
-
-            {Object.entries(annotationsMap).map(
-              ([id, { x, y, width, height, labelId }]) => (
-                <ModifyAnnotationGestureHandler
-                  key={id}
-                  isEditable={
-                    mode === AnnotationModeType.EDIT_MODIFY_ANNOTATION &&
-                    id === activeAnnotationId
-                  }
-                  dimensions={
-                    {
-                      x,
-                      y,
-                      width,
-                      height,
-                    } as SkRect
-                  }
-                  id={id}
-                  color={labelMap[labelId].color}
-                  baseMatrix={matrix}
-                  baseX={baseX}
-                  baseY={baseY}
-                  onLongPress={requestModifyAnnotationMode}
-                />
-              )
-            )}
-          </>
+          <ImageGestureHandler
+            uri={uri}
+            dimensions={containerDimensions as SkRect}
+            imageDimensions={{ width: baseWidth, height: baseHeight } as SkRect}
+            baseX={baseX}
+            baseY={baseY}
+            requestModifyAnnotationMode={requestModifyAnnotationMode}
+            annotationsMap={annotationsMap}
+            activeAnnotationId={activeAnnotationId}
+            mode={mode}
+            onAddAnnotation={onAddAnnotation}
+            onUpdateDraft={onUpdateDraft}
+          />
         )}
       </YStack>
 

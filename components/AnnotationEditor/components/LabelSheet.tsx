@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Circle, Input, Sheet, Text, XStack, YStack } from "tamagui";
+import { Circle, Input, Sheet, Stack, Text, XStack, YStack } from "tamagui";
 import { useStore } from "../../../store";
 
 type LabelSheetProps = {
@@ -65,7 +65,7 @@ export function LabelSheet({
       <Sheet.Handle />
       <Sheet.Frame flex={1} p="$2">
         <YStack space="$2">{frameHeader}</YStack>
-        <Sheet.ScrollView pt="$2" space>
+        <Sheet.ScrollView pt="$2" mb="$10" space="$2">
           {frameHeader &&
             Object.keys(labelMap)
               .filter((innerLabelId) => innerLabelId !== labelId)

@@ -4,7 +4,9 @@ import { Image } from "../components/types";
 interface GlobalState {
   imageList: Image[];
   setImageList: (imageList: Image[]) => void;
-  labelMap: Record<string, { title: string; color: string }>
+  labelMap: Record<string, { title: string; color: string }>;
+  showLabel: boolean;
+  toggleShowLabel: () => void;
 }
 
 export const useStore = create<GlobalState>((set) => ({
@@ -22,5 +24,7 @@ export const useStore = create<GlobalState>((set) => ({
     rubber: { title: "Rubber", color: "82, 255, 0" },
     softPlastic: { title: "Soft Plastic", color: "255, 199, 0" },
     hardPlastic: { title: "Hard Plastic", color: "255, 153, 0" },
-  }
+  },
+  showLabel: true,
+  toggleShowLabel: () => set(({ showLabel }) => ({ showLabel: !showLabel })),
 }));

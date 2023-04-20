@@ -9,6 +9,7 @@ import { StyleSheet } from "react-native";
 import Header from "../components/Header";
 import Toast from "react-native-toast-message";
 import { DatabaseProvider } from "../providers/DatabaseProvider";
+import { MediaProvider } from "../providers/MediaProvider";
 
 export default function HomeLayout() {
   const [loaded, error] = useFonts({
@@ -28,17 +29,19 @@ export default function HomeLayout() {
     <TamaguiProvider config={config}>
       <Theme name="light">
         <DatabaseProvider>
-          <SafeAreaView style={styles.container}>
-            <StackRouter
-              initialRouteName="index"
-              screenOptions={{
-                headerShown: true,
-                header: (props) => <Header {...props} />,
-              }}
-            />
-            <StatusBar />
-            <Toast position="top" topOffset={108} />
-          </SafeAreaView>
+          <MediaProvider>
+            <SafeAreaView style={styles.container}>
+              <StackRouter
+                initialRouteName="index"
+                screenOptions={{
+                  headerShown: true,
+                  header: (props) => <Header {...props} />,
+                }}
+              />
+              <StatusBar />
+              <Toast position="top" topOffset={108} />
+            </SafeAreaView>
+          </MediaProvider>
         </DatabaseProvider>
       </Theme>
     </TamaguiProvider>
