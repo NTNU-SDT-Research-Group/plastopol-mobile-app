@@ -19,8 +19,8 @@ export default function BottomBar({
       style={[
         styles,
         {
-          shadowColor: theme.gray12.val,
-          shadowRadius: 30,
+          shadowColor: theme.gray4.val,
+          shadowRadius: 4,
           elevation: 4,
         },
       ]}

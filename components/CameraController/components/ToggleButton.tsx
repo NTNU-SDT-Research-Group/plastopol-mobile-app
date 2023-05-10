@@ -16,9 +16,9 @@ export const ToggleButton = ({ onPress, isPreview }: ToggleButtonProps) => {
       style={[
         styles.button,
         {
-          shadowColor: theme.gray12.val,
-          shadowRadius: 10,
-          elevation: 1,
+          shadowColor: theme.gray5.val,
+          shadowRadius: 4,
+          elevation: 2,
         },
       ]}
       onPress={onPress}
@@ -29,8 +29,8 @@ export const ToggleButton = ({ onPress, isPreview }: ToggleButtonProps) => {
           styles.buttonInner,
           {
             backgroundColor: isPreview ? theme.red4.val : theme.gray7.val,
-            shadowColor: theme.gray12.val,
-            shadowRadius: 10,
+            shadowColor: theme.gray5.val,
+            shadowRadius: 4,
             elevation: 2,
           },
         ]}

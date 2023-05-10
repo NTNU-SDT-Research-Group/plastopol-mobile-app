@@ -1,5 +1,5 @@
 import React from "react";
-import { Stack, Button, useTheme } from "tamagui";
+import { Stack, Button, useTheme, XStack } from "tamagui";
 import FeatherIcon from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
@@ -10,6 +10,7 @@ type HeaderProps = {
   back?: { title: string };
 };
 
+// TODO: Button height should be removed
 export default function Header({ back }: HeaderProps) {
   const theme = useTheme();
   const router = useRouter();
@@ -17,8 +18,9 @@ export default function Header({ back }: HeaderProps) {
   return (
     <View
       style={{
-        shadowColor: theme.gray12.val,
-        shadowRadius: 30,
+        shadowColor: theme.gray5.val,
+        shadowRadius: -8,
+        // TODO: Fix styles
         elevation: 4,
         backgroundColor: "white",
         height: 64,
@@ -30,7 +32,7 @@ export default function Header({ back }: HeaderProps) {
     >
       <Stack>
         {back && (
-          <Button circular bg="$gray4" onPress={() => router.back()}>
+          <Button w={42} circular bg="$gray4" onPress={() => router.back()}>
             <MaterialIcon
               name="arrow-back"
               size={24}
@@ -40,7 +42,7 @@ export default function Header({ back }: HeaderProps) {
         )}
       </Stack>
       <Stack>
-        <Button circular bg="$gray4">
+        <Button circular w={42} bg="$gray4">
           <FeatherIcon name="user" size={24} color={theme.gray10.val} />
         </Button>
       </Stack>

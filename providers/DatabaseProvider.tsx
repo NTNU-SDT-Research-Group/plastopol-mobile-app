@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createContext } from "react";
 import { openDatabase } from "../utils/database-lib";
 import { Annotation } from "../components/types";
@@ -39,7 +39,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
-        "create table if not exists annotations (id integer primary key not null, value text);"
+        "create table if not exists annotations (id text primary key not null, value text);"
       );
     });
   }, []);
@@ -55,6 +55,8 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   };
 
   const updateAnnotations = (imageId: string, annotation: Annotation[]) => {
+    console.log(imageId, annotation);
+
     db.transaction((tx) => {
       tx.executeSql(
         `insert or replace into annotations (id, value) values (?, ?);`,

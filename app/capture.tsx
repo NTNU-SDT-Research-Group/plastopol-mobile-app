@@ -88,8 +88,7 @@ export default function Capture() {
       showImageSaveSuccessToast();
 
       return album;
-    }
-    else{
+    } else {
       throw new Error("No image to save");
     }
   };
@@ -108,7 +107,10 @@ export default function Capture() {
     if (album) {
       // navigate to annotate screen
       const imageAssets = await getAssetListFromAlbum(album);
-      const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
+      console.log(imageAssets.assets);
+      const assetId = imageAssets.assets.sort(
+        (prev, next) => prev.creationTime + next.creationTime
+      )[0].id;
       router.replace({
         pathname: "/annotate",
         params: {
