@@ -16,11 +16,6 @@ export default function PressableCard({
   return (
     <Card
       {...rest}
-      style={{
-        shadowColor: theme.gray12.val,
-        shadowRadius: 30,
-        elevation: 2,
-      }}
     >
       <YStack flex={1} p={8} alignItems="center">
         <YStack flex={1} justifyContent="center" alignItems="center">

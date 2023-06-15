@@ -1,10 +1,9 @@
 import { XStack, YStack } from "tamagui";
 import React from "react";
 import PressableCard from "../components/PressableCard";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 
-import EventCard from "../components/EventCard";
+import EventCard from "../components/HeroCard";
 import { Image } from "react-native";
 
 export default function HomeScreen() {
@@ -12,12 +11,14 @@ export default function HomeScreen() {
 
   return (
     <YStack space="$2" p={"$2"} bg="$gray2" flex={1}>
-      <YStack flex={1}>
+      <YStack h="25%">
         <EventCard />
       </YStack>
       <XStack h="30%" maxHeight={400} justifyContent="center" space="$2">
         <PressableCard
-          bg="$purple12"
+          borderColor="$purple9"
+          borderWidth="$0.5"
+          bg="$purple2"
           flex={1}
           title="Collection"
           icon={
