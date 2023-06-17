@@ -1,6 +1,6 @@
-import { XStack, YStack } from "tamagui";
+import { Button, XStack, YStack, useTheme } from "tamagui";
 import React from "react";
-import PressableCard from "../components/PressableCard";
+import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import EventCard from "../components/HeroCard";
@@ -8,14 +8,15 @@ import { Image } from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const theme = useTheme();
 
   return (
-    <YStack space="$2" p={"$2"} bg="$gray2" flex={1}>
+    <YStack space="$2" p="$2" bg="$color1" flex={1}>
       <YStack h="25%">
         <EventCard />
       </YStack>
-      <XStack h="30%" maxHeight={400} justifyContent="center" space="$2">
-        <PressableCard
+      <XStack flex={1} justifyContent="center" space="$2">
+        {/* <PressableCard
           borderColor="$purple9"
           borderWidth="$0.5"
           bg="$purple2"
@@ -46,7 +47,23 @@ export default function HomeScreen() {
             />
           }
           onPress={() => router.push("capture")}
-        />
+        /> */}
+      </XStack>
+      <XStack h="25%" bg="red">
+
+      </XStack>
+      <XStack justifyContent="center">
+        <Button
+          icon={<AntDesign name="camerao" size={24} color={theme.color1.val} />}
+          borderRadius={24}
+          onPress={() => router.push("capture")}
+          alignSelf="center"
+          bg="$yellow10"
+          w="100%"
+          themeInverse
+        >
+          Capture
+        </Button>
       </XStack>
     </YStack>
   );
