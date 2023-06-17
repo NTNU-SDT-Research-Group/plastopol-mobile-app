@@ -1,20 +1,19 @@
 import React from "react";
-import { Button, Card, Stack, Text, XStack, useTheme } from "tamagui";
-import { LinearGradient } from "@tamagui/linear-gradient";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { Button, Card, Stack, Text, XStack, getTokens, useTheme } from "tamagui";
+import { LinearGradient } from "@tamagui/linear-gradient"
 import { ImageBackground } from "react-native";
 
 export default function HeroCard() {
-  const theme = useTheme();
+  const tokens = getTokens({prefixed: false});
 
   return (
-    <Card flex={1} bg="red" borderRadius="$4" overflow="hidden">
+    <Card flex={1} borderRadius="$4" overflow="hidden">
       <ImageBackground
         source={require("../../assets/images/title-card-background.png")}
         resizeMode="cover"
         style={{
           flex: 1,
-          padding: 8,
+          padding: tokens.space["2"].val,
         }}
       >
         <Stack
@@ -33,6 +32,7 @@ export default function HeroCard() {
             borderRadius={4}
           />
           <XStack>
+            {/* // TODO: Change to tokens */}
             <Text fontSize={48} fontWeight="700">
               Plast
             </Text>
