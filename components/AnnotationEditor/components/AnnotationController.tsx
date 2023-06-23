@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, useTheme } from "tamagui";
-import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons as MaterialCommunityIcon } from "@expo/vector-icons";
 import BottomBar from "../../BottomBar";
 import { AnnotationModeType } from "../../types";
 import { useStore } from "../../../store";

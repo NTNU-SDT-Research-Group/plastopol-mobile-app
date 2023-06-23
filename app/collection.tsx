@@ -7,14 +7,14 @@ import * as Haptics from "expo-haptics";
 
 import { useRouter } from "expo-router";
 import { useStore } from "../store";
-import {
-  covertUriToAsset,
-} from "../utils/media-lib";
+import { covertUriToAsset } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { databaseContext } from "../providers/DatabaseProvider";
 import { MediaContext } from "../providers/MediaProvider";
 
-export default function ImageList() {
+const BASE_URL = "localhost:8080";
+
+export default function Collection() {
   const router = useRouter();
 
   const {
@@ -22,6 +22,7 @@ export default function ImageList() {
     addAnnotationUpdateListener,
     removeAnnotationUpdateListener,
     cleanupStaleAnnotations,
+    getAnnotations,
   } = useContext(databaseContext);
 
   const imageList = useStore((state) => state.imageList);
@@ -53,7 +54,10 @@ export default function ImageList() {
     onAnnotationUpdate();
     addAnnotationUpdateListener(onAnnotationUpdate);
 
-    return () => removeAnnotationUpdateListener(onAnnotationUpdate);
+    return () => {
+      setSelectedImageIdMap({});
+      removeAnnotationUpdateListener(onAnnotationUpdate);
+    };
   }, []);
 
   // * If we don't have permissions, we show nothing.
@@ -122,25 +126,74 @@ export default function ImageList() {
     });
   };
 
+  const onRequestUploadImages = async () => {
+    const formData = new FormData();
+    Object.entries(selectedImageIdMap)
+      .filter(([key, value]) => value)
+      .forEach(([id, _]) => {
+        const image = imageList.find((image) => image.id === id);
+
+        if (image) {
+          // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
+          formData.append(
+            "images",
+            JSON.stringify({
+              uri: image.path,
+              name: image.filename,
+              type: image.mediaType,
+            })
+          );
+          getAnnotations(
+            id,
+            (annotations) => {
+              formData.append("annotations", JSON.stringify(annotations));
+            },
+            () => {
+              formData.append("annotations", "[]");
+            }
+          );
+        }
+      });
+
+    try {
+      let res = await fetch(BASE_URL + "/tutorial/upload.php", {
+        method: "post",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      let result = await res.json();
+
+      console.log("result", result);
+
+      if (result.status == 1) {
+        console.log("Info", result.msg);
+      }
+    } catch (error) {
+      console.error("error upload", error);
+    }
+  };
+
   return (
-    <YStack flex={1} bg="$gray2">
-      <YStack flex={1}>
-        <ImageRoll
-          annotatedImageIdMap={annotatedImageIdMap}
-          imageList={imageList}
-          onPress={onRequestAnnotateImage}
-          isMultiSelectMode={multiSelectMode}
-          onRequestMultiSelect={() => setMultiSelectMode(true)}
-          onSelectImage={(id: string) => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setSelectedImageIdMap({
-              ...selectedImageIdMap,
-              [id]: !selectedImageIdMap[id],
-            });
-          }}
-          selectedImageIdMap={selectedImageIdMap}
-        />
-      </YStack>
+    <YStack flex={1} bg="$color1">
+      <ImageRoll
+        annotatedImageIdMap={annotatedImageIdMap}
+        imageList={[...imageList].reverse()}
+        onPress={onRequestAnnotateImage}
+        isMultiSelectMode={multiSelectMode}
+        onRequestMultiSelect={() => setMultiSelectMode(true)}
+        onSelectImage={(id: string) => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          setSelectedImageIdMap({
+            ...selectedImageIdMap,
+            [id]: !selectedImageIdMap[id],
+          });
+        }}
+        selectedImageIdMap={selectedImageIdMap}
+      />
       <ImageRollController
         onCancelMultiSelect={() => {
           setMultiSelectMode(false);
@@ -149,6 +202,7 @@ export default function ImageList() {
         onDeleteSelectedImages={onRequestDeleteImages}
         onRequestAddImages={onRequestAddImages}
         selectedImageIdMap={selectedImageIdMap}
+        onUploadImages={onRequestUploadImages}
       />
     </YStack>
   );

@@ -9,7 +9,8 @@ type DatabaseContextProps = {
   updateAnnotations: (imageId: string, annotation: Annotation[]) => void;
   getAnnotations: (
     imageId: string,
-    cb: (annotation: Annotation[]) => void
+    cb: (annotation: Annotation[]) => void,
+    errorCb?: () => void
   ) => void;
   getImageIdsWithValidAnnotations: (cb: (imageIds: string[]) => void) => void;
   addAnnotationUpdateListener: (cb: () => void) => void;
@@ -69,7 +70,8 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
 
   const getAnnotations = (
     imageId: string,
-    cb: (annotation: Annotation[]) => void
+    cb: (annotation: Annotation[]) => void,
+    errorCb?: () => void
   ) => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -78,6 +80,9 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
         (_, { rows }) => {
           if (rows.length > 0) {
             cb(JSON.parse(rows._array[0].value));
+          }
+          else {
+            errorCb && errorCb();
           }
         }
       );

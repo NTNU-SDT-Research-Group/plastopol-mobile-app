@@ -7,6 +7,7 @@ export default function Annotation() {
   const params = useSearchParams();
   const { isPreview, selectedAssetIDList } = params;
 
+  // * INFO: flexible to support multiple assets
   const editableAssetIDList = (selectedAssetIDList as string).split(",");
   const [activeEditable, setActiveEditable] = useState(editableAssetIDList[0]);
   const imageList = useStore((state) => state.imageList);

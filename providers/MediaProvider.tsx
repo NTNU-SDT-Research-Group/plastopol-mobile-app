@@ -42,6 +42,8 @@ export const MediaProvider = ({ children }: MediaProviderProps) => {
 
         setImageList(
           imageAssets.assets.map((asset) => ({
+            filename: asset.filename,
+            mediaType: asset.mediaType,
             width: asset.width,
             height: asset.height,
             id: asset.id,

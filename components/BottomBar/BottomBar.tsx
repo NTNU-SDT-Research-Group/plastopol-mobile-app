@@ -3,7 +3,7 @@ import { TamaguiComponent, XStack, useTheme } from "tamagui";
 
 type BottomBarProps = {
   children?: React.ReactNode;
-  [x:string]: any;
+  [x: string]: any;
 };
 
 export default function BottomBar({
@@ -11,22 +11,17 @@ export default function BottomBar({
   styles,
   ...rest
 }: BottomBarProps) {
-  const theme = useTheme();
-
   return (
     <XStack
       {...rest}
-      style={[
-        styles,
-        {
-          shadowColor: theme.gray12.val,
-          shadowRadius: 30,
-          elevation: 4,
-        },
-      ]}
+      p="$2"
+      bg="$color5"
+      borderTopWidth="$1"
+      borderTopColor="$color7"
       h={64}
       alignItems="center"
-      bg="white"
+      justifyContent="space-evenly"
+      space="$2"
     >
       {children}
     </XStack>

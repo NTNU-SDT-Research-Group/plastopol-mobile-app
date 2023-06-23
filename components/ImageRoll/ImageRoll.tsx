@@ -3,8 +3,7 @@ import { Image, useWindowDimensions, Stack, YStack, useTheme } from "tamagui";
 import NoImage from "./components/NoImage";
 import { Image as ImageType } from "../types";
 import { FlatList, Pressable } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { MaterialCommunityIcons as MaterialCommunityIcon } from "@expo/vector-icons";
 
 type ImageRollProps = {
   imageList: ImageType[];
@@ -51,26 +50,26 @@ export default function ImageRoll({
       >
         {annotatedImageIdMap[item.id] && (
           <Stack position="absolute" top={6} left={6} zIndex={1}>
-            <MaterialCommunityIcons
+            <MaterialCommunityIcon
               name="image-filter-center-focus"
               size={24}
-              color={theme.yellow6.val}
+              color={theme.yellow9.val}
             />
           </Stack>
         )}
         {isMultiSelectMode && (
           <Stack position="absolute" top={6} right={6} zIndex={1}>
             {!selectedImageIdMap[item.id] ? (
-              <MaterialCommunityIcons
+              <MaterialCommunityIcon
                 name="checkbox-blank-outline"
                 size={24}
-                color={theme.gray6.val}
+                color={theme.color9.val}
               />
             ) : (
-              <MaterialCommunityIcons
+              <MaterialCommunityIcon
                 name="checkbox-intermediate"
                 size={24}
-                color={theme.green8.val}
+                color={theme.color9.val}
               />
             )}
           </Stack>
@@ -83,7 +82,7 @@ export default function ImageRoll({
             shadowColor: theme.gray12.val,
           }}
           borderRadius={6}
-          src={item.path}
+          source={{ uri: item.path }}
           height={100}
           width={100}
         />

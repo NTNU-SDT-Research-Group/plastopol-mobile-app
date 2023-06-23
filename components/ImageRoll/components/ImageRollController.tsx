@@ -1,7 +1,9 @@
 import React from "react";
 import { Button, useTheme } from "tamagui";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  MaterialCommunityIcons as MaterialCommunityIcon,
+  MaterialIcons as MaterialIcon,
+} from "@expo/vector-icons";
 
 import BottomBar from "../../BottomBar";
 import { useRouter } from "expo-router";
@@ -12,6 +14,7 @@ type ImageRollControllerProps = {
   isMultiSelectMode: boolean;
   onDeleteSelectedImages: () => void;
   selectedImageIdMap: { [key: string]: boolean };
+  onUploadImages: () => void;
 };
 
 export function ImageRollController({
@@ -20,6 +23,7 @@ export function ImageRollController({
   onCancelMultiSelect,
   onDeleteSelectedImages,
   selectedImageIdMap,
+  onUploadImages
 }: ImageRollControllerProps) {
   const router = useRouter();
   const theme = useTheme();
@@ -29,68 +33,74 @@ export function ImageRollController({
       Object.values(selectedImageIdMap).filter((items) => items).length > 0;
 
     return (
-      <BottomBar p="$2" space="$2">
+      <BottomBar>
         <Button
-          flex={1}
+          circular
+          chromeless
           icon={
             <MaterialCommunityIcon
               name="delete"
-              size={20}
+              size={32}
               color={hasSelectedImage ? theme.red9.val : theme.gray9.val}
             />
           }
           onPress={onDeleteSelectedImages}
           disabled={!hasSelectedImage}
-        >
-          Delete
-        </Button>
+        ></Button>
         <Button
-          flex={1}
-          alignItems="center"
+          circular
+          chromeless
+          icon={
+            <MaterialCommunityIcon
+              name="upload"
+              size={32}
+              color={theme.green9.val}
+            />
+          }
+          onPress={onUploadImages}
+        ></Button>
+        <Button
+          circular
+          chromeless
           icon={
             <MaterialCommunityIcon
               name="close"
-              size={20}
+              size={32}
               color={theme.red9.val}
             />
           }
           onPress={onCancelMultiSelect}
-        >
-          Cancel
-        </Button>
+        ></Button>
       </BottomBar>
     );
   }
 
   return (
-    <BottomBar p="$2" space="$2">
+    <BottomBar>
       <Button
-        flex={1}
+        circular
+        chromeless
         icon={
           <MaterialIcon
             name="monochrome-photos"
-            size={20}
-            color={theme.green10.val}
+            size={32}
+            color={theme.color9.val}
           />
         }
         onPress={() => router.push("capture")}
-      >
-        Camera
-      </Button>
+      ></Button>
       <Button
-        flex={1}
-        alignItems="center"
+        circular
+        chromeless
         icon={
           <MaterialIcon
             name="photo-library"
-            size={20}
-            color={theme.green10.val}
+            size={32}
+            color={theme.color9.val}
           />
         }
         onPress={onRequestAddImages}
-      >
-        Import
-      </Button>
+      ></Button>
     </BottomBar>
   );
 }

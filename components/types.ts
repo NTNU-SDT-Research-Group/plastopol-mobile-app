@@ -13,6 +13,8 @@ export type Image = {
   width: number;
   path: string;
   modificationTime: number;
+  filename: string;
+  mediaType: string;
 };
 
 export type ImageWithAnnotation = Image & {

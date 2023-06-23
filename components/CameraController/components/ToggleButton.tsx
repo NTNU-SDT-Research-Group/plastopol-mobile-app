@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Stack, useTheme } from "tamagui";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
 
 type ToggleButtonProps = {
   onPress: () => void;

@@ -1,9 +1,11 @@
 import React from "react";
 import { Stack, Button, useTheme, XStack } from "tamagui";
-import FeatherIcon from "@expo/vector-icons/Feather";
-import { useRouter } from "expo-router";
-import { View } from "react-native";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { useRouter, usePathname } from "expo-router";
+import {
+  MaterialIcons as MaterialIcon,
+  Entypo as EntypoIcon,
+  Feather as FeatherIcon,
+} from "@expo/vector-icons";
 
 type HeaderProps = {
   // options: any;
@@ -13,21 +15,10 @@ type HeaderProps = {
 export default function Header({ back }: HeaderProps) {
   const theme = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <XStack
-      // TODO: Add shadow
-      // style={{
-      //   shadowColor: theme.gray12.val,
-      //   shadowRadius: 30,
-      //   elevation: 4,
-      //   backgroundColor: "white",
-      //   height: 64,
-      //   flexDirection: "row",
-      //   justifyContent: "space-between",
-      //   alignItems: "center",
-      //   paddingHorizontal: 8,
-      // }}
       h={64}
       justifyContent="space-between"
       alignItems="center"
@@ -44,6 +35,15 @@ export default function Header({ back }: HeaderProps) {
               size={24}
               color={theme.color10.val}
             />
+          </Button>
+        )}
+        {pathname === "/" && (
+          <Button
+            circular
+            borderColor="$color7"
+            onPress={() => router.push("collection")}
+          >
+            <EntypoIcon name="images" size={24} color={theme.color10.val} />
           </Button>
         )}
       </Stack>

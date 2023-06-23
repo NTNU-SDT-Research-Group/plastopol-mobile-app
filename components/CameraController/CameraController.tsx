@@ -2,8 +2,10 @@ import React from "react";
 import { Button, XStack, useTheme } from "tamagui";
 import { ToggleButton } from "./components/ToggleButton";
 import { CameraType, FlashMode } from "expo-camera";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  MaterialIcons as MaterialIcon,
+  MaterialCommunityIcons as MaterialCommunityIcon,
+} from "@expo/vector-icons";
 import BottomBar from "../BottomBar";
 
 type CameraControllerProps = {
