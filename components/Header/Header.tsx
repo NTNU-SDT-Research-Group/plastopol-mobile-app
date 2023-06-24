@@ -23,9 +23,9 @@ export default function Header({ back }: HeaderProps) {
       justifyContent="space-between"
       alignItems="center"
       px="$2"
-      bg="$color5"
+      bg="$color2"
       borderBottomWidth="$1"
-      borderBottomColor="$color7"
+      borderBottomColor="$color3"
     >
       <Stack>
         {back && (

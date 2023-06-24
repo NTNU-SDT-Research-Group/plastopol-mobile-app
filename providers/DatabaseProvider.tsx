@@ -1,30 +1,35 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createContext } from "react";
 import { openDatabase } from "../utils/database-lib";
 import { Annotation } from "../components/types";
 
-const NO_OP = () => {};
+const NO_OP = () => new Promise<any>((resolve) => resolve({}));
 
 type DatabaseContextProps = {
-  updateAnnotations: (imageId: string, annotation: Annotation[]) => void;
-  getAnnotations: (
+  updateAnnotations: (
     imageId: string,
-    cb: (annotation: Annotation[]) => void,
-    errorCb?: () => void
-  ) => void;
-  getImageIdsWithValidAnnotations: (cb: (imageIds: string[]) => void) => void;
+    scaledWidth: number,
+    scaledHeight: number,
+    annotation: Annotation[]
+  ) => Promise<void>;
+  getAnnotations: (imageId: string) => Promise<Annotation[]>;
+  getScaledDimensions: (
+    imageId: string
+  ) => Promise<{ width: number; height: number }>;
+  getImageIdsWithValidAnnotations: () => Promise<string[]>;
   addAnnotationUpdateListener: (cb: () => void) => void;
   removeAnnotationUpdateListener: (cb: () => void) => void;
-  cleanupStaleAnnotations: (idList: string[]) => void;
+  cleanupStaleAnnotations: (idList: string[]) => Promise<void>;
 };
 
 export const databaseContext = createContext<DatabaseContextProps>({
   updateAnnotations: NO_OP,
   getAnnotations: NO_OP,
+  getScaledDimensions: NO_OP,
   getImageIdsWithValidAnnotations: NO_OP,
+  cleanupStaleAnnotations: NO_OP,
   addAnnotationUpdateListener: NO_OP,
   removeAnnotationUpdateListener: NO_OP,
-  cleanupStaleAnnotations: NO_OP,
 });
 
 type DatabaseProviderProps = {
@@ -40,7 +45,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
-        "create table if not exists annotations (id integer primary key not null, value text);"
+        "create table if not exists annotations (id integer primary key not null, scaledHeight real, scaledWidth real, value text);"
       );
     });
   }, []);
@@ -55,69 +60,123 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     );
   };
 
-  const updateAnnotations = (imageId: string, annotation: Annotation[]) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `insert or replace into annotations (id, value) values (?, ?);`,
-        [imageId, JSON.stringify(annotation)],
-        (_, { rows }) => {
-          onAnnotationUpdateCbList.forEach((cb) => cb());
-        }
-      );
-    });
-    return;
-  };
-
-  const getAnnotations = (
+  const updateAnnotations = (
     imageId: string,
-    cb: (annotation: Annotation[]) => void,
-    errorCb?: () => void
+    scaledWidth: number,
+    scaledHeight: number,
+    annotation: Annotation[]
   ) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `select * from annotations where id = ?;`,
-        [imageId],
-        (_, { rows }) => {
-          if (rows.length > 0) {
-            cb(JSON.parse(rows._array[0].value));
+    return new Promise<void>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `insert or replace into annotations (id, scaledWidth, scaledHeight, value) values (?, ?, ?, ?);`,
+          [imageId, scaledWidth, scaledHeight, JSON.stringify(annotation)],
+          (_, { rows }) => {
+            onAnnotationUpdateCbList.forEach((cb) => cb());
+            resolve();
+          },
+          (_, error) => {
+            reject(error);
+            return false;
           }
-          else {
-            errorCb && errorCb();
-          }
-        }
-      );
+        );
+      });
     });
   };
 
-  const getImageIdsWithValidAnnotations = (
-    cb: (imageIds: string[]) => void
-  ) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `select * from annotations where value is not null;`,
-        [],
-        (_, { rows }) => {
-          cb(
-            rows._array
-              .filter((x) => x.value !== null && x.value !== "[]")
-              .map((x) => x.id) as string[]
-          );
-        }
-      );
+  const getAnnotations = (imageId: string) => {
+    return new Promise<Annotation[]>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `select * from annotations where id = ?;`,
+          [imageId],
+          (_, { rows }) => {
+            if (rows.length > 0) {    
+              resolve(JSON.parse(rows._array[0].value));
+            } else {
+              resolve([]);
+            }
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  };
+
+  const getScaledDimensions = (imageId: string) => {
+    return new Promise<{
+      width: number;
+      height: number;
+    }>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `select * from annotations where id = ?;`,
+          [imageId],
+          (_, { rows }) => {
+            if (rows.length > 0) {
+              resolve({
+                width: rows._array[0].scaledWidth,
+                height: rows._array[0].scaledHeight,
+              });
+            } else {
+              resolve({
+                width: 0,
+                height: 0,
+              });
+            }
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  };
+
+  const getImageIdsWithValidAnnotations = () => {
+    return new Promise<string[]>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `select * from annotations where value is not null;`,
+          [],
+          (_, { rows }) => {
+            resolve(
+              rows._array
+                .filter((x) => x.value !== null && x.value !== "[]")
+                .map((x) => x.id) as string[]
+            );
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
     });
   };
 
   const cleanupStaleAnnotations = (idList: string[]) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `delete from annotations where id in (${idList
-          .map(() => "?")
-          .join(",")});`,
-        idList,
-        (_, { rows }) => {
-          onAnnotationUpdateCbList.forEach((cb) => cb());
-        }
-      );
+    return new Promise<void>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `delete from annotations where id in (${idList
+            .map(() => "?")
+            .join(",")});`,
+          idList,
+          (_, { rows }) => {
+            onAnnotationUpdateCbList.forEach((cb) => cb());
+            resolve();
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
     });
   };
 
@@ -126,6 +185,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
       value={{
         updateAnnotations,
         getAnnotations,
+        getScaledDimensions,
         getImageIdsWithValidAnnotations,
         addAnnotationUpdateListener,
         removeAnnotationUpdateListener,

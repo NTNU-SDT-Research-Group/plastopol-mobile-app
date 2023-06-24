@@ -15,9 +15,9 @@ export default function BottomBar({
     <XStack
       {...rest}
       p="$2"
-      bg="$color5"
+      bg="$color2"
       borderTopWidth="$1"
-      borderTopColor="$color7"
+      borderTopColor="$color3"
       h={64}
       alignItems="center"
       justifyContent="space-evenly"

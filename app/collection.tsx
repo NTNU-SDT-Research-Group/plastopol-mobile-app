@@ -23,6 +23,7 @@ export default function Collection() {
     removeAnnotationUpdateListener,
     cleanupStaleAnnotations,
     getAnnotations,
+    getScaledDimensions,
   } = useContext(databaseContext);
 
   const imageList = useStore((state) => state.imageList);
@@ -45,7 +46,7 @@ export default function Collection() {
 
   useEffect(() => {
     const onAnnotationUpdate = () =>
-      getImageIdsWithValidAnnotations((imageIds) => {
+      getImageIdsWithValidAnnotations().then((imageIds) => {
         setAnnotatedImageIdMap(
           imageIds.reduce((acc, id) => ({ ...acc, [id]: true }), {})
         );
@@ -111,7 +112,7 @@ export default function Collection() {
       .map((image) => image.id);
 
     deleteImagesFromAlbum(idList);
-    cleanupStaleAnnotations(idList);
+    await cleanupStaleAnnotations(idList);
     setMultiSelectMode(false);
   };
 
@@ -128,33 +129,42 @@ export default function Collection() {
 
   const onRequestUploadImages = async () => {
     const formData = new FormData();
-    Object.entries(selectedImageIdMap)
-      .filter(([key, value]) => value)
-      .forEach(([id, _]) => {
-        const image = imageList.find((image) => image.id === id);
+    await Promise.all(
+      Object.entries(selectedImageIdMap)
+        .filter(([key, value]) => value)
+        .map(async ([id, _]) => {
+          const image = imageList.find((image) => image.id === id);
 
-        if (image) {
-          // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
-          formData.append(
-            "images",
-            {
+          if (image) {
+            // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
+            formData.append("images", {
               uri: image.path,
               name: image.filename,
-              type: "image/jpeg",
-            } as any
-          );
-          
-          getAnnotations(
-            id,
-            (annotations) => {
+              type: "image/*",
+            } as any);
+
+            const { width: scaledWidth, height: scaledHeight } =
+              await getScaledDimensions(id);
+            formData.append(
+              "metadata",
+              JSON.stringify({
+                width: image.width,
+                height: image.height,
+                scaledWidth,
+                scaledHeight,
+              })
+            );
+
+            try {
+              const annotations = await getAnnotations(id);
               formData.append("annotations", JSON.stringify(annotations));
-            },
-            () => {
+            } catch (error) {
+              console.log(error);
               formData.append("annotations", "[]");
             }
-          );
-        }
-      });
+          }
+        })
+    );
 
     try {
       let res = await fetch("http://192.168.0.33:3000/api/annotation", {
@@ -168,13 +178,26 @@ export default function Collection() {
 
       let result = await res.json();
 
-      console.log("result", result);
+      if (result.status == 200) {
+        Toast.show({
+          type: "success",
+          text1: "Upload successful",
+        });
 
-      if (result.status == 1) {
-        console.log("Info", result.msg);
+        const idList = imageList
+          .filter((image) => selectedImageIdMap[image.id])
+          .map((image) => image.id);
+        deleteImagesFromAlbum(idList);
+        await cleanupStaleAnnotations(idList);
+        setMultiSelectMode(false);
       }
     } catch (error) {
-      console.error("error upload", error);
+      Toast.show({
+        type: "success",
+        text1: "Upload error",
+      });
+
+      console.error(error);
     }
   };
 

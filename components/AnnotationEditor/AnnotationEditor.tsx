@@ -56,11 +56,15 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
 
   // Load annotations
   useEffect(() => {
-    getAnnotations(imageId, (annotations) => {
-      if (annotations.length > 0) {
-        setAnnotationsMap(convertAnnotationsToAnnotationsDraft(annotations));
-      }
-    });
+    getAnnotations(imageId)
+      .then((annotations) => {
+        if (annotations.length > 0) {
+          setAnnotationsMap(convertAnnotationsToAnnotationsDraft(annotations));
+        }
+      })
+      .catch(() => {
+        console.log("No annotations found for image");
+      });
   }, []);
 
   // If label sheet is closed, reset mode
@@ -135,7 +139,7 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
       ...annotationsMap,
       [annotationId]: {
         labelId: activeLabelId ?? "label1",
-        id: Math.random().toString(),
+        id: Date.now().toString(),
         x,
         y,
         width,
@@ -181,6 +185,13 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
     };
   };
 
+  const {
+    x: baseX,
+    y: baseY,
+    width: baseWidth,
+    height: baseHeight,
+  } = getImageDimensions(containerDimensions, aspectRatio);
+
   const onSaveAnnotation = () => {
     const modifiedAnnotationMap = Object.entries(annotationsMap).reduce(
       (acc, [key, value]) => ({
@@ -195,19 +206,14 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
 
     updateAnnotations(
       imageId,
+      baseWidth,
+      baseHeight,
       convertAnnotationsDraftToAnnotations(modifiedAnnotationMap)
     );
 
     showAnnotationSaveSuccessToast();
     router.back();
   };
-
-  const {
-    x: baseX,
-    y: baseY,
-    width: baseWidth,
-    height: baseHeight,
-  } = getImageDimensions(containerDimensions, aspectRatio);
 
   if (!uri) {
     return null;
