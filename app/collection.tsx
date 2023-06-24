@@ -12,7 +12,7 @@ import Toast from "react-native-toast-message";
 import { databaseContext } from "../providers/DatabaseProvider";
 import { MediaContext } from "../providers/MediaProvider";
 
-const BASE_URL = "localhost:8080";
+const BASE_URL = "http://localhost:3000";
 
 export default function Collection() {
   const router = useRouter();
@@ -137,12 +137,13 @@ export default function Collection() {
           // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
           formData.append(
             "images",
-            JSON.stringify({
+            {
               uri: image.path,
               name: image.filename,
-              type: image.mediaType,
-            })
+              type: "image/jpeg",
+            } as any
           );
+          
           getAnnotations(
             id,
             (annotations) => {
@@ -156,8 +157,8 @@ export default function Collection() {
       });
 
     try {
-      let res = await fetch(BASE_URL + "/tutorial/upload.php", {
-        method: "post",
+      let res = await fetch("http://192.168.0.33:3000/api/annotation", {
+        method: "POST",
         body: formData,
         headers: {
           Accept: "application/json",
