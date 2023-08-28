@@ -1,3 +1,5 @@
+import "expo-dev-client";
+
 import { Button, XStack, YStack, useTheme, getTokens } from "tamagui";
 import React from "react";
 import { AntDesign as AntDesignIcon } from "@expo/vector-icons";
