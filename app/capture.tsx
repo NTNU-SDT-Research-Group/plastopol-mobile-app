@@ -120,7 +120,7 @@ export default function Capture() {
   };
 
   return (
-    <YStack flex={1}>
+    <YStack flex={1} bg="$color1">
       <Stack flex={1}>
         {currentImage ? (
           <Image style={styles.preview} source={{ uri: currentImage.uri }} />

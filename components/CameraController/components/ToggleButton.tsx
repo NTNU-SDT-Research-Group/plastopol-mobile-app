@@ -22,13 +22,13 @@ export const ToggleButton = ({ onPress, isPreview }: ToggleButtonProps) => {
         },
       ]}
       onPress={onPress}
-      bg={isPreview ? "$red7" : "$gray8"}
+      bg={isPreview ? "$red7" : "$gray11"}
     >
       <View
         style={[
           styles.buttonInner,
           {
-            backgroundColor: isPreview ? theme.red4.val : theme.gray7.val,
+            backgroundColor: isPreview ? theme.red4.val : theme.gray5.val,
             shadowColor: theme.gray12.val,
             shadowRadius: 10,
             elevation: 2,
@@ -38,7 +38,7 @@ export const ToggleButton = ({ onPress, isPreview }: ToggleButtonProps) => {
         {isPreview ? (
           <MaterialIcon name="delete-forever" size={32} color="red" />
         ) : (
-          <MaterialIcon name="camera" size={32} color="black" />
+          <MaterialIcon name="camera" size={32} color="grey" />
         )}
       </View>
     </Stack>

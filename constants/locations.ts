@@ -1,1 +1,2 @@
 export const IMAGE_STORAGE_LOCATION = 'PlastOPol';
+export const BASE_URL = "http://129.241.152.251:3000";

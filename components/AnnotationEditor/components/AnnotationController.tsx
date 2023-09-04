@@ -54,13 +54,13 @@ export default function AnnotationController({
           <MaterialCommunityIcon
             name="alphabetical"
             size={28}
-            color={theme.green10.val}
+            color={theme.green9.val}
           />
         ) : (
           <MaterialCommunityIcon
             name="alphabetical-off"
             size={28}
-            color={theme.green10.val}
+            color={theme.green9.val}
           />
         )}
       </Button>
@@ -88,7 +88,7 @@ export default function AnnotationController({
             <MaterialCommunityIcon
               name="image-filter-center-focus"
               size={20}
-              color={theme.green10.val}
+              color={theme.green9.val}
             />
           }
         >
@@ -103,7 +103,7 @@ export default function AnnotationController({
           <MaterialCommunityIcon
             name="content-save"
             size={20}
-            color={isDirty ? theme.green10.val : theme.gray9.val}
+            color={isDirty ? theme.green9.val : theme.gray9.val}
           />
         }
         disabled={!isDirty}

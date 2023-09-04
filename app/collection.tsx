@@ -11,8 +11,7 @@ import { covertUriToAsset } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { databaseContext } from "../providers/DatabaseProvider";
 import { MediaContext } from "../providers/MediaProvider";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../constants/locations";
 
 export default function Collection() {
   const router = useRouter();
@@ -167,7 +166,7 @@ export default function Collection() {
     );
 
     try {
-      let res = await fetch("http://192.168.0.33:3000/api/annotation", {
+      let res = await fetch(`${BASE_URL}/api/annotation`, {
         method: "POST",
         body: formData,
         headers: {

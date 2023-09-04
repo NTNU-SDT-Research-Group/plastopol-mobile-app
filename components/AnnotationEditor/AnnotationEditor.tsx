@@ -220,7 +220,7 @@ export default function AnnotationEditor({ imageData }: AnnotationEditorProps) {
   }
 
   return (
-    <YStack flex={1}>
+    <YStack flex={1} bg="$color1">
       <YStack
         flex={1}
         onLayout={(event) => {
