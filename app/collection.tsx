@@ -12,6 +12,8 @@ import Toast from "react-native-toast-message";
 import { databaseContext } from "../providers/DatabaseProvider";
 import { MediaContext } from "../providers/MediaProvider";
 import { BASE_URL } from "../constants/locations";
+import { Platform } from "react-native";
+import { getAssetInfoAsync } from "expo-media-library";
 
 export default function Collection() {
   const router = useRouter();
@@ -136,12 +138,22 @@ export default function Collection() {
           const image = imageList.find((image) => image.id === id);
 
           if (image) {
-            // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
-            formData.append("images", {
-              uri: image.path,
-              name: image.filename,
-              type: "image/*",
-            } as any);
+            if (Platform.OS === "ios") {
+              const { localUri } = await getAssetInfoAsync(image.id);
+
+              formData.append("images", {
+                uri: localUri,
+                name: image.filename,
+                type: "image/*",
+              } as any);
+            } else {
+              // https://github.com/g6ling/React-Native-Tips/issues/1#issuecomment-393880798
+              formData.append("images", {
+                uri: image.path,
+                name: image.filename,
+                type: "image/*",
+              } as any);
+            }
 
             const { width: scaledWidth, height: scaledHeight } =
               await getScaledDimensions(id);
