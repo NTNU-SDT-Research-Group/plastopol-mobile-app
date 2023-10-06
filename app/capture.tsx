@@ -90,6 +90,7 @@ export default function Capture() {
       const album = await addImagesToAlbum(ImageAsset);
 
       const imageAssets = await getAssetListFromAlbum(album);
+
       const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
       // Save location to db
       const location = await getLocation();

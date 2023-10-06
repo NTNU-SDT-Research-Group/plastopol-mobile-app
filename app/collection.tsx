@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { YStack } from "tamagui";
+import { YStack, Spinner, Text } from "tamagui";
 import ImageRoll, { ImageRollController } from "../components/ImageRoll";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "../components/types";
@@ -34,6 +34,7 @@ export default function Collection() {
   const [selectedImageIdMap, setSelectedImageIdMap] = useState<
     Record<string, boolean>
   >({});
+  const [isUploading, setIsUploading] = useState(false);
 
   const { album, deleteImagesFromAlbum, permission, addImagesToAlbum } =
     useContext(MediaContext);
@@ -130,6 +131,11 @@ export default function Collection() {
   };
 
   const onRequestUploadImages = async () => {
+    if (isUploading) {
+      return;
+    }
+
+    setIsUploading(true);
     const formData = new FormData();
     await Promise.all(
       Object.entries(selectedImageIdMap)
@@ -205,15 +211,26 @@ export default function Collection() {
         await cleanupStaleAnnotations(idList);
         setMultiSelectMode(false);
       }
+
+      setIsUploading(false);
     } catch (error) {
       Toast.show({
         type: "success",
         text1: "Upload error",
       });
 
+      setIsUploading(false);
       console.error(error);
     }
   };
+
+  if (isUploading) {
+    return (
+      <YStack flex={1} bg="$color1" alignItems="center" justifyContent="center">
+        <Spinner size="large" />
+      </YStack>
+    );
+  }
 
   return (
     <YStack flex={1} bg="$color1">

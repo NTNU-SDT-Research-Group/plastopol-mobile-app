@@ -1,8 +1,15 @@
-import { Album, createAssetAsync, getAssetsAsync } from "expo-media-library";
+import {
+  Album,
+  SortBy,
+  createAssetAsync,
+  getAssetsAsync,
+  SortByValue,
+} from "expo-media-library";
 
 export const getAssetListFromAlbum = async (album: Album) => {
   return await getAssetsAsync({
     album: album,
+    sortBy: [["creationTime", true]],
   });
 };
 
