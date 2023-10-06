@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { Stack, useTheme } from "tamagui";
 import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
 
@@ -17,7 +17,7 @@ export const ToggleButton = ({ onPress, isPreview }: ToggleButtonProps) => {
         styles.button,
         {
           shadowColor: theme.gray12.val,
-          shadowRadius: 10,
+          shadowRadius: Platform.OS === "ios" ? 0 : 10,
           elevation: 1,
         },
       ]}

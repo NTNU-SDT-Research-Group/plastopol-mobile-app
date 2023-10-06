@@ -6,6 +6,13 @@ import { Annotation } from "../components/types";
 const NO_OP = () => new Promise<any>((resolve) => resolve({}));
 
 type DatabaseContextProps = {
+  setLocation: (
+    imageId: string,
+    location: {
+      latitude: number;
+      longitude: number;
+    }
+  ) => Promise<void>;
   updateAnnotations: (
     imageId: string,
     scaledWidth: number,
@@ -16,6 +23,10 @@ type DatabaseContextProps = {
   getScaledDimensions: (
     imageId: string
   ) => Promise<{ width: number; height: number }>;
+  getLocation: (imageId: string) => Promise<{
+    latitude: number;
+    longitude: number;
+  } | void>;
   getImageIdsWithValidAnnotations: () => Promise<string[]>;
   addAnnotationUpdateListener: (cb: () => void) => void;
   removeAnnotationUpdateListener: (cb: () => void) => void;
@@ -23,9 +34,11 @@ type DatabaseContextProps = {
 };
 
 export const databaseContext = createContext<DatabaseContextProps>({
+  setLocation: NO_OP,
   updateAnnotations: NO_OP,
   getAnnotations: NO_OP,
   getScaledDimensions: NO_OP,
+  getLocation: NO_OP,
   getImageIdsWithValidAnnotations: NO_OP,
   cleanupStaleAnnotations: NO_OP,
   addAnnotationUpdateListener: NO_OP,
@@ -44,8 +57,10 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
 
   useEffect(() => {
     db.transaction((tx) => {
+      // drop table
+      // tx.executeSql("drop table annotations;");
       tx.executeSql(
-        "create table if not exists annotations (id integer primary key not null, scaledHeight real, scaledWidth real, value text);"
+        "create table if not exists annotations (id text primary key not null, scaledHeight real, scaledWidth real, value text, longitude real, latitude real);"
       );
     });
   }, []);
@@ -58,6 +73,34 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     setOnAnnotationUpdateCbList(
       onAnnotationUpdateCbList.filter((x) => x !== cb)
     );
+  };
+
+  const setLocation = (
+    imageId: string,
+    location: {
+      latitude: number;
+      longitude: number;
+    }
+  ) => {
+    return new Promise<void>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `insert into annotations (id, longitude, latitude) values (?, ?, ?);`,
+          [
+            imageId,
+            parseFloat(location.latitude as unknown as string),
+            parseFloat(location.longitude as unknown as string),
+          ],
+          () => {
+            resolve();
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
   };
 
   const updateAnnotations = (
@@ -91,10 +134,38 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
           `select * from annotations where id = ?;`,
           [imageId],
           (_, { rows }) => {
-            if (rows.length > 0) {    
+            if (rows.length > 0) {
               resolve(JSON.parse(rows._array[0].value));
             } else {
               resolve([]);
+            }
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          }
+        );
+      });
+    });
+  };
+
+  const getLocation = (imageId: string) => {
+    return new Promise<{
+      latitude: number;
+      longitude: number;
+    } | void>((resolve, reject) => {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `select * from annotations where id = ?;`,
+          [imageId],
+          (_, { rows }) => {
+            if (rows.length > 0) {
+              resolve({
+                latitude: rows._array[0].latitude,
+                longitude: rows._array[0].longitude,
+              });
+            } else {
+              resolve(undefined);
             }
           },
           (_, error) => {
@@ -183,7 +254,9 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   return (
     <databaseContext.Provider
       value={{
+        setLocation,
         updateAnnotations,
+        getLocation,
         getAnnotations,
         getScaledDimensions,
         getImageIdsWithValidAnnotations,

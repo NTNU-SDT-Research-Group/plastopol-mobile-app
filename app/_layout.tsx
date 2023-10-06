@@ -1,15 +1,15 @@
 import React, { useEffect } from "react";
 import StatusBar from "../components/StatusBar";
-import { Stack as StackRouter, ErrorBoundary, SplashScreen } from "expo-router";
+import { Stack as StackRouter, SplashScreen } from "expo-router";
 import { TamaguiProvider, Theme, useTheme } from "tamagui";
 import { useFonts } from "expo-font";
 import config from "../tamagui.config";
 import { SafeAreaView as SafeAreaViewBase } from "react-native-safe-area-context";
-import { StyleSheet } from "react-native";
 import Header from "../components/Header";
 import Toast from "react-native-toast-message";
 import { DatabaseProvider } from "../providers/DatabaseProvider";
 import { MediaProvider } from "../providers/MediaProvider";
+import { LocationProvider } from "../providers/LocationProvider";
 
 const SafeAreaView = ({ children }: { children: React.ReactNode }) => {
   const theme = useTheme();
@@ -45,17 +45,19 @@ export default function HomeLayout() {
       <Theme name="blue">
         <DatabaseProvider>
           <MediaProvider>
-            <SafeAreaView>
-              <StackRouter
-                initialRouteName="index"
-                screenOptions={{
-                  headerShown: true,
-                  header: (props) => <Header {...props} />,
-                }}
-              />
-              <StatusBar />
-              <Toast position="top" topOffset={108} />
-            </SafeAreaView>
+            <LocationProvider>
+              <SafeAreaView>
+                <StackRouter
+                  initialRouteName="index"
+                  screenOptions={{
+                    headerShown: true,
+                    header: (props) => <Header {...props} />,
+                  }}
+                />
+                <StatusBar />
+                <Toast position="top" topOffset={108} />
+              </SafeAreaView>
+            </LocationProvider>
           </MediaProvider>
         </DatabaseProvider>
       </Theme>

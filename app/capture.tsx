@@ -13,8 +13,13 @@ import { covertUriToAsset, getAssetListFromAlbum } from "../utils/media-lib";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import { MediaContext } from "../providers/MediaProvider";
+import { databaseContext } from "../providers/DatabaseProvider";
+import { LocationContext } from "../providers/LocationProvider";
 
 export default function Capture() {
+  const { setLocation } = useContext(databaseContext);
+  const { getLocation } = useContext(LocationContext);
+
   const cameraRef = useRef<Camera>(null);
   const router = useRouter();
 
@@ -84,12 +89,19 @@ export default function Capture() {
       const ImageAsset = await covertUriToAsset([picture.uri]);
       const album = await addImagesToAlbum(ImageAsset);
 
+      const imageAssets = await getAssetListFromAlbum(album);
+      const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
+      // Save location to db
+      const location = await getLocation();
+      if (location) {
+        await setLocation(assetId, location);
+      }
+
       setCurrentImage(null);
       showImageSaveSuccessToast();
 
       return album;
-    }
-    else{
+    } else {
       throw new Error("No image to save");
     }
   };

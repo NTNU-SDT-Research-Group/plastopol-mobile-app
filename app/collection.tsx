@@ -23,6 +23,7 @@ export default function Collection() {
     cleanupStaleAnnotations,
     getAnnotations,
     getScaledDimensions,
+    getLocation,
   } = useContext(databaseContext);
 
   const imageList = useStore((state) => state.imageList);
@@ -144,6 +145,7 @@ export default function Collection() {
 
             const { width: scaledWidth, height: scaledHeight } =
               await getScaledDimensions(id);
+            const location = await getLocation(id);
             formData.append(
               "metadata",
               JSON.stringify({
@@ -151,6 +153,7 @@ export default function Collection() {
                 height: image.height,
                 scaledWidth,
                 scaledHeight,
+                location: location,
               })
             );
 
