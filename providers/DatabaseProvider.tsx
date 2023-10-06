@@ -112,7 +112,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     return new Promise<void>((resolve, reject) => {
       db.transaction((tx) => {
         tx.executeSql(
-          `insert or replace into annotations (id, scaledWidth, scaledHeight, value) values (?, ?, ?, ?);`,
+          `insert or ignore into annotations (id, scaledWidth, scaledHeight, value) values (?, ?, ?, ?) on conflict (id) do update set scaledWidth = excluded.scaledWidth, scaledHeight = excluded.scaledHeight, value = excluded.value;`,
           [imageId, scaledWidth, scaledHeight, JSON.stringify(annotation)],
           (_, { rows }) => {
             onAnnotationUpdateCbList.forEach((cb) => cb());
