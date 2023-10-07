@@ -85,7 +85,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     return new Promise<void>((resolve, reject) => {
       db.transaction((tx) => {
         tx.executeSql(
-          `insert into annotations (id, longitude, latitude) values (?, ?, ?);`,
+          `insert into annotations (id, latitude, longitude) values (?, ?, ?);`,
           [
             imageId,
             parseFloat(location.latitude as unknown as string),

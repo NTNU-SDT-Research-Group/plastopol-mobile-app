@@ -11,7 +11,7 @@ import {
 } from "expo-location";
 
 type LocationContextProps = {
-  getLocation: () => Promise<
+  getGPSLocation: () => Promise<
     | {
         latitude: number;
         longitude: number;
@@ -23,7 +23,7 @@ type LocationContextProps = {
 };
 
 export const LocationContext = createContext<LocationContextProps>({
-  getLocation: () => Promise.resolve(null),
+  getGPSLocation: () => Promise.resolve(null),
   permission: null,
 });
 
@@ -40,7 +40,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     }
   }, [permission]);
 
-  const getLocation = async () => {
+  const getGPSLocation = async () => {
     try {
       const { status } = await requestPermission();
       if (status === PermissionStatus.GRANTED) {
@@ -62,7 +62,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   return (
     <LocationContext.Provider
       value={{
-        getLocation,
+        getGPSLocation: getGPSLocation,
         permission,
       }}
     >

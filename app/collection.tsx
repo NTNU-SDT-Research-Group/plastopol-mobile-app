@@ -177,7 +177,11 @@ export default function Collection() {
 
             try {
               const annotations = await getAnnotations(id);
-              formData.append("annotations", JSON.stringify(annotations));
+              if (annotations === null || annotations.length === 0) {
+                formData.append("annotations", "[]");
+              } else {
+                formData.append("annotations", JSON.stringify(annotations));
+              }
             } catch (error) {
               console.log(error);
               formData.append("annotations", "[]");

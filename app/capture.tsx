@@ -18,7 +18,7 @@ import { LocationContext } from "../providers/LocationProvider";
 
 export default function Capture() {
   const { setLocation } = useContext(databaseContext);
-  const { getLocation } = useContext(LocationContext);
+  const { getGPSLocation } = useContext(LocationContext);
 
   const cameraRef = useRef<Camera>(null);
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function Capture() {
 
       const assetId = imageAssets.assets[imageAssets.assets.length - 1].id;
       // Save location to db
-      const location = await getLocation();
+      const location = await getGPSLocation();
       if (location) {
         await setLocation(assetId, location);
       }
